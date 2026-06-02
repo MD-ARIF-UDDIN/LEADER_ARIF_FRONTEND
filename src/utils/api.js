@@ -1,3 +1,5 @@
+const BASE_URL = 'https://leader-arif-server.onrender.com';
+
 const getAuthToken = () => localStorage.getItem('somiti_token');
 
 /**
@@ -24,7 +26,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     config.body = JSON.stringify(options.body);
   }
 
-  const response = await fetch(endpoint, config);
+  const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
   // If unauthorized / token expired
   if (response.status === 401) {
