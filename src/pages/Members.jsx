@@ -5,7 +5,8 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT, formatBanglaDate, formatBanglaMonth } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { Plus, Search, Info, PlusCircle, History, Edit, X, Save, Calendar, Download, FileText } from 'lucide-react';
+import ReceiptModal from '../components/ReceiptModal';
+import { Plus, Search, Info, PlusCircle, History, Edit, X, Save, Calendar, Download, FileText, Receipt } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 export default function Members() {
@@ -24,14 +25,15 @@ export default function Members() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [receiptData, setReceiptData] = useState(null); // For receipt modal
 
   // Selected Member for operations
   // Selected Member for operations
   const [selectedMember, setSelectedMember] = useState(null);
-  
+
   // Form submission loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Forms state
   const [memberForm, setMemberForm] = useState({
     name: '',
@@ -69,7 +71,7 @@ export default function Members() {
   }, []);
 
   // Filtered members list
-  const filteredMembers = members.filter(member => 
+  const filteredMembers = members.filter(member =>
     member.name.toLowerCase().includes(search.toLowerCase()) ||
     member.memberId.toLowerCase().includes(search.toLowerCase()) ||
     member.mobile.includes(search)
@@ -122,7 +124,7 @@ export default function Members() {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    
+
     const promise = apiRequest('/api/members', {
       method: 'POST',
       body: memberForm
@@ -139,7 +141,7 @@ export default function Members() {
       setShowAddModal(false);
       resetMemberForm();
       fetchMembers();
-    } catch (err) {} finally {
+    } catch (err) { } finally {
       setIsSubmitting(false);
     }
   };
@@ -166,7 +168,7 @@ export default function Members() {
       setShowEditModal(false);
       resetMemberForm();
       fetchMembers();
-    } catch (err) {} finally {
+    } catch (err) { } finally {
       setIsSubmitting(false);
     }
   };
@@ -189,14 +191,28 @@ export default function Members() {
     });
 
     try {
-      await promise;
+      const res = await promise;
       setShowDepositModal(false);
       fetchMembers();
       // If detail modal is open, refresh detail data
       if (activeMemberDetail && activeMemberDetail.member._id === selectedMember._id) {
         handleViewDetails(selectedMember._id);
       }
-    } catch (err) {} finally {
+      // Show receipt automatically
+      setReceiptData({
+        id: res?._id || res?.deposit?._id || '',
+        type: 'deposit',
+        memberName: selectedMember.name,
+        memberId: selectedMember.memberId,
+        mobile: selectedMember.mobile,
+        address: selectedMember.address,
+        month: formatBanglaMonth(depositForm.month),
+        date: formatBanglaDate(depositForm.date),
+        amount: formatBDT(depositForm.amount),
+        amountRaw: depositForm.amount,
+        recordedBy: user.name,
+      });
+    } catch (err) { } finally {
       setIsSubmitting(false);
     }
   };
@@ -226,12 +242,12 @@ export default function Members() {
   // Trigger deposit collection modal setup
   const handleOpenDepositModal = (member) => {
     setSelectedMember(member);
-    
+
     // Set default amount to member's monthly rate
     // Set default month to current month YYYY-MM
     const today = new Date();
     const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    
+
     setDepositForm({
       amount: member.monthlyDepositAmount,
       month: currentMonthStr,
@@ -286,13 +302,13 @@ export default function Members() {
       <Header title="সদস্যবৃন্দ" />
 
       <main className="content-wrapper">
-        
+
         {/* Header Action & Search */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>সদস্য তালিকা ({toBanglaNumber(filteredMembers.length)} জন)</h3>
           {isAdmin && (
-            <button 
-              className="btn btn-primary btn-sm" 
+            <button
+              className="btn btn-primary btn-sm"
               style={{ width: 'auto', minHeight: '38px', gap: '4px', flexShrink: 0 }}
               onClick={() => {
                 resetMemberForm();
@@ -400,7 +416,7 @@ export default function Members() {
                   {member.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
                 </span>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px', gap: '8px', flexWrap: 'wrap' }}>
                 <div style={{ fontSize: '0.8rem', minWidth: 0 }}>
                   সঞ্চয়: <strong style={{ color: 'var(--success)' }}>{formatBDT(member.totalDeposited)}</strong>
@@ -412,8 +428,8 @@ export default function Members() {
 
               {/* Table Action Column Rules mapped as buttons */}
               <div className="list-actions">
-                <button 
-                  className="btn btn-outline btn-sm" 
+                <button
+                  className="btn btn-outline btn-sm"
                   style={{ flex: 1, minHeight: '36px', gap: '2px' }}
                   onClick={() => handleViewDetails(member._id)}
                 >
@@ -422,8 +438,8 @@ export default function Members() {
                 </button>
 
                 {isAdmin && (
-                  <button 
-                    className="btn btn-accent btn-sm" 
+                  <button
+                    className="btn btn-accent btn-sm"
                     style={{ flex: 1, minHeight: '36px', gap: '2px' }}
                     onClick={() => handleOpenDepositModal(member)}
                   >
@@ -432,8 +448,8 @@ export default function Members() {
                   </button>
                 )}
 
-                <button 
-                  className="btn btn-outline btn-sm" 
+                <button
+                  className="btn btn-outline btn-sm"
                   style={{ flex: 1, minHeight: '36px', gap: '2px' }}
                   onClick={() => handleViewHistory(member)}
                 >
@@ -442,8 +458,8 @@ export default function Members() {
                 </button>
 
                 {isAdmin && (
-                  <button 
-                    className="btn btn-primary btn-sm" 
+                  <button
+                    className="btn btn-primary btn-sm"
                     style={{ flex: 1, minHeight: '36px', gap: '2px' }}
                     onClick={() => handleOpenEditModal(member)}
                   >
@@ -544,9 +560,8 @@ export default function Members() {
                         <td style={{ padding: '8px' }}>{formatBanglaMonth(item.month)}</td>
                         <td style={{ padding: '8px' }}>{formatBDT(item.paidAmount)}</td>
                         <td style={{ padding: '8px', textAlign: 'right' }}>
-                          <span className={`list-badge ${
-                            item.status === 'PAID' ? 'badge-success' : (item.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')
-                          }`}>
+                          <span className={`list-badge ${item.status === 'PAID' ? 'badge-success' : (item.status === 'PARTIAL' ? 'badge-warning' : 'badge-danger')
+                            }`}>
                             {item.status === 'PAID' ? 'পরিশোধিত' : (item.status === 'PARTIAL' ? 'আংশিক' : 'বকেয়া')}
                           </span>
                         </td>
@@ -557,8 +572,8 @@ export default function Members() {
               </div>
 
               {isAdmin && (
-                <button 
-                  className="btn btn-accent" 
+                <button
+                  className="btn btn-accent"
                   style={{ marginTop: '16px' }}
                   onClick={() => {
                     handleOpenDepositModal(activeMemberDetail.member);
@@ -837,7 +852,7 @@ export default function Members() {
 
                 <button type="submit" className="btn btn-accent" style={{ gap: '8px' }} disabled={isSubmitting}>
                   <PlusCircle size={18} />
-                  <span>{isSubmitting ? 'অপেক্ষা করুন...' : 'জমা নিশ্চিত করুন'}</span>
+                  <span>{isSubmitting ? 'অপেক্ষা করুন...' : 'জমা নিশ্চিত করুন ও রশিদ পান'}</span>
                 </button>
               </form>
             </div>
@@ -871,6 +886,7 @@ export default function Members() {
                         <th style={{ padding: '8px' }}>মাস</th>
                         <th style={{ padding: '8px' }}>তারিখ</th>
                         <th style={{ padding: '8px', textAlign: 'right' }}>পরিমাণ</th>
+                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -883,6 +899,34 @@ export default function Members() {
                           </td>
                           <td style={{ padding: '8px', fontWeight: 'bold', textAlign: 'right', color: 'var(--success)' }}>
                             {formatBDT(dep.amount)}
+                          </td>
+                          <td style={{ padding: '8px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => setReceiptData({
+                                id: dep._id,
+                                type: 'deposit',
+                                memberName: selectedMember.name,
+                                memberId: selectedMember.memberId,
+                                mobile: selectedMember.mobile,
+                                address: selectedMember.address,
+                                month: formatBanglaMonth(dep.month),
+                                date: formatBanglaDate(dep.date),
+                                amount: formatBDT(dep.amount),
+                                amountRaw: dep.amount,
+                                recordedBy: dep.recordedBy?.name || '',
+                              })}
+                              style={{
+                                background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
+                                color: 'white', border: 'none', borderRadius: '7px',
+                                padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                fontWeight: 700, fontFamily: 'inherit',
+                                boxShadow: '0 2px 6px rgba(15,118,110,0.3)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              <Receipt size={12} /> রশিদ
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -897,6 +941,14 @@ export default function Members() {
       </main>
 
       <BottomNav />
+
+      {/* Receipt Modal */}
+      {receiptData && (
+        <ReceiptModal
+          receipt={receiptData}
+          onClose={() => setReceiptData(null)}
+        />
+      )}
     </div>
   );
 }

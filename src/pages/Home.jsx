@@ -50,24 +50,40 @@ export default function Home() {
           color: 'white',
           border: 'none',
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          gap: '16px',
-          padding: '20px'
+          padding: '16px 20px',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-md)'
         }}>
-          <img src="/logo.jpeg" alt="Logo" style={{ 
-            width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover',
-            border: '2px solid rgba(255,255,255,0.3)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-            backgroundColor: '#fff',
-            padding: '2px'
-          }} />
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
-              স্বাগতম, {user.name} 👋
-            </h3>
-            <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.85rem' }}>
-              পদবী: {user.role === 'admin' ? 'এডমিন (পরিচালক)' : 'সমিতি সদস্য'}
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src="/logo.jpeg" alt="Logo" style={{ 
+              width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover',
+              border: '2px solid rgba(255,255,255,0.3)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+              backgroundColor: '#fff',
+              padding: '2px'
+            }} />
+            <div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+                স্বাগতম, {user.name} 👋
+              </h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.85rem' }}>
+                পদবী: {user.role === 'admin' ? 'এডমিন (পরিচালক)' : 'সমিতি সদস্য'}
+              </p>
+            </div>
+          </div>
+          {/* President Profile Section */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.12)', padding: '6px 12px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>Ariful Islam</div>
+              <div style={{ fontSize: '0.68rem', color: '#a5f3fc', fontWeight: 600 }}>সভাপতি</div>
+            </div>
+            <img src="/president.png" alt="Ariful Islam" style={{
+              width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover',
+              border: '2px solid #a5f3fc',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }} />
           </div>
         </div>
 

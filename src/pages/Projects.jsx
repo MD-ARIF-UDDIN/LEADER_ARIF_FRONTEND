@@ -5,7 +5,8 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT, formatBanglaDate, formatBanglaMonth } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { Plus, Search, Info, HandCoins, History, Edit, X, Save, ShieldAlert, Award, Download, FileText } from 'lucide-react';
+import ReceiptModal from '../components/ReceiptModal';
+import { Plus, Search, Info, HandCoins, History, Edit, X, Save, ShieldAlert, Award, Download, FileText, Receipt } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 export default function Projects() {
@@ -24,6 +25,7 @@ export default function Projects() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [receiptData, setReceiptData] = useState(null); // For receipt modal
 
   // Selected Project for operations
   // Selected Project for operations
@@ -216,13 +218,27 @@ export default function Projects() {
     });
 
     try {
-      await promise;
+      const res = await promise;
       setShowCollectModal(false);
       fetchProjects();
       // If detail modal is open, refresh detail data
       if (activeProjectDetail && activeProjectDetail.project._id === selectedProject._id) {
         handleViewDetails(selectedProject._id);
       }
+      // Show receipt automatically
+      setReceiptData({
+        id: res?._id || res?.installment?._id || '',
+        type: 'installment',
+        projectName: selectedProject.projectName,
+        projectType: selectedProject.projectType,
+        driverName: selectedProject.driverName,
+        driverMobile: selectedProject.driverMobile,
+        month: formatBanglaMonth(installmentForm.month),
+        date: formatBanglaDate(installmentForm.date),
+        amount: formatBDT(installmentForm.amount),
+        amountRaw: installmentForm.amount,
+        recordedBy: user.name,
+      });
     } catch (err) {} finally {
       setIsSubmitting(false);
     }
@@ -1201,8 +1217,8 @@ export default function Projects() {
                 </div>
 
                 <button type="submit" className="btn btn-accent" style={{ gap: '8px' }} disabled={isSubmitting}>
-                  <PlusCircle size={18} />
-                  <span>{isSubmitting ? 'অপেক্ষা করুন...' : 'আদায় নিশ্চিত করুন'}</span>
+                  <HandCoins size={18} />
+                  <span>{isSubmitting ? 'অপেক্ষা করুন...' : 'আদায় নিশ্চিত করুন ও রশিদ পান'}</span>
                 </button>
               </form>
             </div>
@@ -1236,6 +1252,7 @@ export default function Projects() {
                         <th style={{ padding: '8px' }}>মাস</th>
                         <th style={{ padding: '8px' }}>তারিখ</th>
                         <th style={{ padding: '8px', textAlign: 'right' }}>পরিমাণ</th>
+                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1248,6 +1265,34 @@ export default function Projects() {
                           </td>
                           <td style={{ padding: '8px', fontWeight: 'bold', textAlign: 'right', color: 'var(--success)' }}>
                             {formatBDT(inst.amount)}
+                          </td>
+                          <td style={{ padding: '8px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => setReceiptData({
+                                id: inst._id,
+                                type: 'installment',
+                                projectName: selectedProject.projectName,
+                                projectType: selectedProject.projectType,
+                                driverName: selectedProject.driverName,
+                                driverMobile: selectedProject.driverMobile,
+                                month: formatBanglaMonth(inst.month),
+                                date: formatBanglaDate(inst.date),
+                                amount: formatBDT(inst.amount),
+                                amountRaw: inst.amount,
+                                recordedBy: inst.recordedBy?.name || '',
+                              })}
+                              style={{
+                                background: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                                color: 'white', border: 'none', borderRadius: '7px',
+                                padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                fontWeight: 700, fontFamily: 'inherit',
+                                boxShadow: '0 2px 6px rgba(217,119,6,0.3)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              <Receipt size={12} /> রশিদ
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1262,6 +1307,14 @@ export default function Projects() {
       </main>
 
       <BottomNav />
+
+      {/* Receipt Modal */}
+      {receiptData && (
+        <ReceiptModal
+          receipt={receiptData}
+          onClose={() => setReceiptData(null)}
+        />
+      )}
     </div>
   );
 }
