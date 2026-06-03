@@ -17,6 +17,8 @@ import { X, Download, MessageCircle, Phone, CheckCircle } from 'lucide-react';
 export default function ReceiptModal({ receipt, onClose }) {
   const receiptRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState(''); // '', 'copied', 'shared', 'error'
 
   if (!receipt) return null;
 
@@ -55,36 +57,81 @@ export default function ReceiptModal({ receipt, onClose }) {
       ``,
       isDeposit ? `✅ মাসিক সঞ্চয় সফলভাবে জমা হয়েছে।` : `✅ কিস্তি সফলভাবে আদায় হয়েছে।`,
       ``,
-      `📎 *সংযুক্ত রশিদ:* দয়া করে ডাউনলোড করা PDF ফাইলটি এখানে যুক্ত করুন।`,
-      ``,
       `ধন্যবাদ! 🙏`,
     ];
-    return encodeURIComponent(lines.join('\n'));
+    return lines.join('\n');
   };
 
-  const sendToWhatsApp = (phone) => {
+  // Generate receipt canvas (shared by download and WhatsApp send)
+  const generateCanvas = async () => {
+    const { default: html2canvas } = await import('html2canvas');
+    return html2canvas(receiptRef.current, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+  };
+
+  const sendReceiptToWhatsApp = async (phone) => {
     const cleaned = phone.replace(/\D/g, '');
     const intl = cleaned.startsWith('0') ? '880' + cleaned.slice(1) : cleaned;
-    const url = `https://wa.me/${intl}?text=${buildWhatsAppText()}`;
-    window.open(url, '_blank');
+    const text = buildWhatsAppText();
+    const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+
+    setIsSending(true);
+    setSendStatus('');
+    try {
+      const canvas = await generateCanvas();
+
+      // Try Web Share API first (works natively on mobile — attaches image to WhatsApp)
+      if (navigator.canShare) {
+        const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+        const file = new File([blob], `Receipt_${receiptNumber}.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'রশিদ',
+            text,
+            files: [file],
+          });
+          setSendStatus('shared');
+          return;
+        }
+      }
+
+      // Desktop fallback: copy image to clipboard, then open WhatsApp Web
+      try {
+        const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob }),
+        ]);
+        setSendStatus('copied');
+      } catch {
+        // Clipboard write failed — just open WhatsApp without image
+        setSendStatus('error');
+      }
+      window.open(waUrl, '_blank');
+    } catch (err) {
+      console.error('WhatsApp send failed:', err);
+      // If user cancelled share or something else — just open link
+      window.open(waUrl, '_blank');
+      setSendStatus('');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const { default: html2pdf } = await import('html2pdf.js');
-      const element = receiptRef.current;
-      const opt = {
-        margin: 0,
-        filename: `Receipt_${receiptNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true, backgroundColor: '#fff' },
-        jsPDF: { unit: 'mm', format: [95, 172], orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
-      };
-      await html2pdf().set(opt).from(element).save();
+      const canvas = await generateCanvas();
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `Receipt_${receiptNumber}.png`;
+      link.click();
     } catch (err) {
-      console.error('PDF generation failed:', err);
+      console.error('Image generation failed:', err);
     } finally {
       setIsDownloading(false);
     }
@@ -391,7 +438,7 @@ export default function ReceiptModal({ receipt, onClose }) {
             }}
           >
             <Download size={18} />
-            {isDownloading ? 'ডাউনলোড হচ্ছে...' : 'PDF ডাউনলোড করুন'}
+            {isDownloading ? 'ডাউনলোড হচ্ছে...' : 'ছবি ডাউনলোড করুন'}
           </button>
 
           {/* WhatsApp sharing controls */}
@@ -401,10 +448,13 @@ export default function ReceiptModal({ receipt, onClose }) {
           }}>
             <p style={{
               fontSize: '0.82rem', fontWeight: 700, color: '#16a34a',
-              marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px',
+              marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               <MessageCircle size={16} />
-              WhatsApp নম্বর লিখুন/সম্পাদনা করুন
+              রশিদসহ WhatsApp-এ পাঠান
+            </p>
+            <p style={{ fontSize: '0.72rem', color: '#4ade80', marginBottom: '10px', fontWeight: 500 }}>
+              📱 মোবাইলে ট্যাপ করলে সরাসরি ছবিসহ WhatsApp খুলবে
             </p>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -426,31 +476,67 @@ export default function ReceiptModal({ receipt, onClose }) {
                     fontSize: '0.88rem', fontFamily: 'inherit',
                     background: 'white', outline: 'none',
                     transition: 'border-color 0.2s',
+                    boxSizing: 'border-box',
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#25d366'}
                   onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
                 />
               </div>
               <button
-                onClick={() => sendToWhatsApp(customNumber)}
-                disabled={!customNumber || customNumber.length < 10}
+                onClick={() => sendReceiptToWhatsApp(customNumber)}
+                disabled={!customNumber || customNumber.length < 10 || isSending}
                 style={{
                   padding: '11px 14px', borderRadius: '10px', border: 'none',
-                  background: customNumber.length >= 10
+                  background: customNumber.length >= 10 && !isSending
                     ? 'linear-gradient(135deg, #25d366, #128c7e)'
                     : '#e2e8f0',
-                  color: customNumber.length >= 10 ? '#fff' : '#94a3b8',
-                  fontWeight: 700, cursor: customNumber.length >= 10 ? 'pointer' : 'not-allowed',
+                  color: customNumber.length >= 10 && !isSending ? '#fff' : '#94a3b8',
+                  fontWeight: 700,
+                  cursor: customNumber.length >= 10 && !isSending ? 'pointer' : 'not-allowed',
                   fontSize: '0.82rem', fontFamily: 'inherit',
                   transition: 'all 0.2s', whiteSpace: 'nowrap',
                   display: 'flex', alignItems: 'center', gap: '4px',
-                  boxShadow: customNumber.length >= 10 ? '0 4px 12px rgba(37,211,102,0.25)' : 'none',
+                  boxShadow: customNumber.length >= 10 && !isSending
+                    ? '0 4px 12px rgba(37,211,102,0.3)' : 'none',
+                  minWidth: '120px', justifyContent: 'center',
                 }}
               >
-                <MessageCircle size={16} />
-                WhatsApp-এ পাঠান
+                {isSending
+                  ? <>⏳ তৈরি হচ্ছে...</>
+                  : <><MessageCircle size={16} /> রশিদসহ পাঠান</>
+                }
               </button>
             </div>
+
+            {/* Status feedback banners */}
+            {sendStatus === 'shared' && (
+              <div style={{
+                marginTop: '10px', padding: '8px 12px', borderRadius: '8px',
+                background: '#dcfce7', border: '1px solid #86efac',
+                fontSize: '0.78rem', color: '#166534', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: '6px',
+              }}>
+                ✅ রশিদ সফলভাবে WhatsApp-এ শেয়ার হয়েছে!
+              </div>
+            )}
+            {sendStatus === 'copied' && (
+              <div style={{
+                marginTop: '10px', padding: '8px 12px', borderRadius: '8px',
+                background: '#fffbeb', border: '1px solid #fcd34d',
+                fontSize: '0.78rem', color: '#92400e', fontWeight: 600,
+              }}>
+                📋 রশিদের ছবি ক্লিপবোর্ডে কপি হয়েছে! WhatsApp খুলে <strong>Ctrl+V / পেস্ট</strong> করুন।
+              </div>
+            )}
+            {sendStatus === 'error' && (
+              <div style={{
+                marginTop: '10px', padding: '8px 12px', borderRadius: '8px',
+                background: '#fef2f2', border: '1px solid #fca5a5',
+                fontSize: '0.78rem', color: '#991b1b', fontWeight: 600,
+              }}>
+                ⚠️ ছবি কপি করা যায়নি। WhatsApp খুলে ম্যানুয়ালি রশিদ যুক্ত করুন।
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -448,7 +448,15 @@ export default function Projects() {
               : 0;
 
             return (
-              <div className="action-card" key={project._id}>
+              <div 
+                className="action-card" 
+                key={project._id}
+                style={{
+                  border: project.totalDue > 0 ? '1.5px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border)',
+                  backgroundColor: project.totalDue > 0 ? '#fff5f5' : '#ffffff',
+                  boxShadow: project.totalDue > 0 ? '0 4px 12px rgba(239, 68, 68, 0.05)' : 'var(--shadow-sm)'
+                }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h4 style={{ fontSize: '1rem', color: 'var(--primary-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.projectName}</h4>
@@ -456,6 +464,21 @@ export default function Projects() {
                       চালক: {project.driverName} · {toBanglaNumber(project.driverMobile)}
                     </p>
                   </div>
+                  {project.returnAmount - project.totalPaid > 0 && (
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      color: 'var(--danger)', 
+                      fontWeight: 'bold', 
+                      alignSelf: 'center', 
+                      backgroundColor: '#fee2e2', 
+                      padding: '3px 8px', 
+                      borderRadius: '6px', 
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      মোট বকেয়া: {formatBDT(project.returnAmount - project.totalPaid)}
+                    </span>
+                  )}
                   <span className={`list-badge ${
                     project.status === 'completed' 
                       ? 'badge-success' 
@@ -470,7 +493,7 @@ export default function Projects() {
                   <div style={{ minWidth: 0 }}>বিনিয়োগ: <strong>{formatBDT(project.investmentAmount)}</strong></div>
                   <div style={{ minWidth: 0 }}>ফেরত লক্ষ্য: <strong>{formatBDT(project.returnAmount)}</strong></div>
                   <div style={{ minWidth: 0 }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(project.totalPaid)}</strong></div>
-                  <div style={{ minWidth: 0 }}>বকেয়া: <strong style={project.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(project.totalDue)}</strong></div>
+                  <div style={{ minWidth: 0 }}>বকেয়া: <strong style={project.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(project.totalDue)} {project.totalDue > 0 && project.monthlyInstallmentAmount > 0 && `(${toBanglaNumber(Math.round(project.totalDue / project.monthlyInstallmentAmount))} মাস)`}</strong></div>
                 </div>
 
                 {/* Progress bar */}

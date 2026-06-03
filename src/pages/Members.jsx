@@ -404,7 +404,15 @@ export default function Members() {
           </div>
         ) : (
           filteredMembers.map(member => (
-            <div className="action-card" key={member._id}>
+            <div 
+              className="action-card" 
+              key={member._id}
+              style={{
+                border: member.totalDue > 0 ? '1.5px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border)',
+                backgroundColor: member.totalDue > 0 ? '#fff5f5' : '#ffffff',
+                boxShadow: member.totalDue > 0 ? '0 4px 12px rgba(239, 68, 68, 0.05)' : 'var(--shadow-sm)'
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h4 style={{ fontSize: '1rem', color: 'var(--primary-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</h4>
@@ -412,6 +420,21 @@ export default function Members() {
                     আইডি: <strong>{toBanglaNumber(member.memberId)}</strong> · {toBanglaNumber(member.mobile)}
                   </p>
                 </div>
+                {member.totalDue > 0 && (
+                  <span style={{ 
+                    fontSize: '0.75rem', 
+                    color: 'var(--danger)', 
+                    fontWeight: 'bold', 
+                    alignSelf: 'center', 
+                    backgroundColor: '#fee2e2', 
+                    padding: '3px 8px', 
+                    borderRadius: '6px', 
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    মোট বকেয়া: {formatBDT(member.totalDue)}
+                  </span>
+                )}
                 <span className={`list-badge ${member.status === 'active' ? 'badge-success' : 'badge-danger'}`} style={{ flexShrink: 0 }}>
                   {member.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
                 </span>
@@ -422,7 +445,7 @@ export default function Members() {
                   সঞ্চয়: <strong style={{ color: 'var(--success)' }}>{formatBDT(member.totalDeposited)}</strong>
                 </div>
                 <div style={{ fontSize: '0.8rem', minWidth: 0 }}>
-                  বকেয়া: <strong style={member.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(member.totalDue)}</strong>
+                  বকেয়া: <strong style={member.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(member.totalDue)} {member.totalDue > 0 && member.monthlyDepositAmount > 0 && `(${toBanglaNumber(Math.round(member.totalDue / member.monthlyDepositAmount))} মাস)`}</strong>
                 </div>
               </div>
 

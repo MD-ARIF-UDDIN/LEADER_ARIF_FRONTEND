@@ -76,7 +76,7 @@ export default function Home() {
           {/* President Profile Section */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.12)', padding: '6px 12px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>Ariful Islam</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>আরিফুল ইসলাম</div>
               <div style={{ fontSize: '0.68rem', color: '#a5f3fc', fontWeight: 600 }}>সভাপতি</div>
             </div>
             <img src="/president.png" alt="Ariful Islam" style={{
