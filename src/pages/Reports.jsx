@@ -5,7 +5,7 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT, formatBanglaDate, formatBanglaMonth } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { Printer, Calendar, Search, Filter, Info, X, Download, FileText } from 'lucide-react';
+import { Printer, Calendar, Search, Filter, Info, X, Download, FileText, Award } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 export default function Reports() {
@@ -31,6 +31,7 @@ export default function Reports() {
   // Detailed Modal states (when clicking Action column)
   const [activeMemberDetail, setActiveMemberDetail] = useState(null);
   const [activeProjectDetail, setActiveProjectDetail] = useState(null);
+  const [allProjects, setAllProjects] = useState([]);
 
   // Fetch Report Data
   const fetchReport = async () => {
@@ -87,6 +88,20 @@ export default function Reports() {
   useEffect(() => {
     fetchReport();
   }, [activeTab, filterType, filterDate, filterMonth, filterYear]);
+
+  useEffect(() => {
+    if (isAdmin && (activeTab === 3 || activeTab === 4 || activeTab === 5)) {
+      const fetchAllProjects = async () => {
+        try {
+          const data = await apiRequest('/api/projects');
+          setAllProjects(data);
+        } catch (err) {
+          console.error('Failed to fetch projects for driver ranking', err);
+        }
+      };
+      fetchAllProjects();
+    }
+  }, [activeTab, isAdmin]);
 
   // Handler for Member Detail lookup in Action Column
   const handleViewMemberDetails = async (id) => {
@@ -487,6 +502,78 @@ export default function Reports() {
                   <option value="2028">২০২৮ সাল</option>
                 </select>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Driver Performance Ranking section (Admin only, visible on project-related tabs) */}
+        {isAdmin && (activeTab === 3 || activeTab === 4 || activeTab === 5) && allProjects.length > 0 && (
+          <div className="card" style={{ marginBottom: '16px', padding: '16px' }}>
+            <h3 style={{ fontSize: '1rem', color: 'var(--primary-dark)', marginBottom: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Award size={18} />
+              <span>কিস্তি পরিশোধের ভিত্তিতে চালকদের র্যাংকিং</span>
+            </h3>
+
+            <div className="grid-2" style={{ marginBottom: 0 }}>
+              {/* Best Drivers (Top 3) */}
+              <div style={{ backgroundColor: 'var(--success-light)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(22, 163, 74, 0.2)' }}>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--success)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                  🏆 সেরা চালক (সঠিক পরিশোধকারী)
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(() => {
+                    const sorted = [...allProjects]
+                      .map(p => {
+                        const expected = Math.min(p.installmentDuration, p.monthsElapsed || 0) * p.monthlyInstallmentAmount;
+                        const pct = expected > 0 ? Math.round((p.totalPaid / expected) * 100) : 100;
+                        return { ...p, pct };
+                      })
+                      .sort((a, b) => b.pct - a.pct);
+
+                    const topDrivers = sorted.slice(0, 3);
+                    return topDrivers.map((p, idx) => (
+                      <div key={p._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', padding: '4px 0', borderBottom: idx < topDrivers.length - 1 ? '1px dashed rgba(22, 163, 74, 0.15)' : 'none' }}>
+                        <div>
+                          <strong style={{ color: 'var(--text-main)' }}>{p.driverName}</strong>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '4px' }}>({p.projectName})</span>
+                        </div>
+                        <span style={{ fontWeight: 'bold', color: 'var(--success)' }}>{toBanglaNumber(p.pct)}%</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Worst Drivers (Bottom 3) */}
+              <div style={{ backgroundColor: 'var(--danger-light)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(220, 38, 38, 0.2)' }}>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--danger)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                  ⚠️ বকেয়া চালক (তাগিদ দিতে হবে)
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(() => {
+                    const sorted = [...allProjects]
+                      .map(p => {
+                        const expected = Math.min(p.installmentDuration, p.monthsElapsed || 0) * p.monthlyInstallmentAmount;
+                        const pct = expected > 0 ? Math.round((p.totalPaid / expected) * 100) : 100;
+                        return { ...p, pct };
+                      })
+                      .sort((a, b) => a.pct - b.pct);
+
+                    const bottomDrivers = sorted.slice(0, 3);
+                    return bottomDrivers.map((p, idx) => (
+                      <div key={p._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', padding: '4px 0', borderBottom: idx < bottomDrivers.length - 1 ? '1px dashed rgba(220, 38, 38, 0.15)' : 'none' }}>
+                        <div>
+                          <strong style={{ color: 'var(--text-main)' }}>{p.driverName}</strong>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '4px' }}>({p.projectName})</span>
+                        </div>
+                        <span style={{ fontWeight: 'bold', color: 'var(--danger)' }}>
+                          {toBanglaNumber(p.pct)}% ({formatBDT(p.totalDue)})
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
             </div>
           </div>
         )}
