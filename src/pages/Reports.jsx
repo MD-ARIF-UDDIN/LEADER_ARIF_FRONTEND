@@ -564,7 +564,7 @@ export default function Reports() {
                       <tr key={row._id}>
                         <td>
                           <div style={{ fontWeight: 'bold' }}>{row.project?.projectName || 'মুছে ফেলা প্রজেক্ট'}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: {row.project?.driverName}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: <strong style={{ fontWeight: 'bold', color: '#1e293b' }}>{row.project?.driverName}</strong></div>
                         </td>
                         <td>{formatBanglaMonth(row.month)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.amount)}</td>
@@ -601,7 +601,7 @@ export default function Reports() {
                       <tr key={row._id}>
                         <td>
                           <div style={{ fontWeight: 'bold' }}>{row.projectName}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: {row.driverName}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: <strong style={{ fontWeight: 'bold', color: '#1e293b' }}>{row.driverName}</strong></div>
                         </td>
                         <td>{formatBDT(row.remainingBalance)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--danger)' }}>{formatBDT(row.totalDue)}</td>
@@ -743,11 +743,11 @@ export default function Reports() {
                   <tbody>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>চালকের নাম:</td>
-                      <td>{activeProjectDetail.project.driverName}</td>
+                      <td style={{ fontWeight: 'bold' }}>{activeProjectDetail.project.driverName}</td>
                     </tr>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>যোগাযোগ:</td>
-                      <td>{toBanglaNumber(activeProjectDetail.project.driverMobile)}</td>
+                      <td style={{ fontWeight: 'bold' }}>{toBanglaNumber(activeProjectDetail.project.driverMobile)}</td>
                     </tr>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>মূলধন বিনিয়োগ:</td>

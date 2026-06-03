@@ -323,8 +323,8 @@ export default function ReceiptModal({ receipt, onClose }) {
                 <>
                   <InfoRow label="প্রজেক্টের নাম" value={receipt.projectName} icon="📋" />
                   <InfoRow label="প্রজেক্ট ধরন" value={receipt.projectType} icon="🚗" alt />
-                  <InfoRow label="চালকের নাম" value={receipt.driverName} icon="👷" />
-                  <InfoRow label="চালক মোবাইল" value={receipt.driverMobile} icon="📱" alt />
+                  <InfoRow label="চালকের নাম" value={<strong style={{ fontWeight: 900, color: '#0f766e' }}>{receipt.driverName}</strong>} icon="👷" />
+                  <InfoRow label="চালক মোবাইল" value={<strong style={{ fontWeight: 900, color: '#0f766e' }}>{receipt.driverMobile}</strong>} icon="📱" alt />
                 </>
               )}
               <InfoRow label="মাস" value={receipt.month} icon="📅" alt={isDeposit ? true : false} />

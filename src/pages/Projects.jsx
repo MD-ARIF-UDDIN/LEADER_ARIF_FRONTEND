@@ -461,7 +461,7 @@ export default function Projects() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h4 style={{ fontSize: '1rem', color: 'var(--primary-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.projectName}</h4>
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      চালক: {project.driverName} · {toBanglaNumber(project.driverMobile)}
+                      চালক: <strong style={{ fontWeight: '800', color: '#1e293b' }}>{project.driverName}</strong> · <strong style={{ fontWeight: '800', color: '#1e293b' }}>{toBanglaNumber(project.driverMobile)}</strong>
                     </p>
                   </div>
                   {project.returnAmount - project.totalPaid > 0 && (
@@ -609,11 +609,11 @@ export default function Projects() {
                   <tbody>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>চালকের নাম:</td>
-                      <td>{activeProjectDetail.project.driverName}</td>
+                      <td style={{ fontWeight: 'bold' }}>{activeProjectDetail.project.driverName}</td>
                     </tr>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>চালক মোবাইল:</td>
-                      <td>{toBanglaNumber(activeProjectDetail.project.driverMobile)}</td>
+                      <td style={{ fontWeight: 'bold' }}>{toBanglaNumber(activeProjectDetail.project.driverMobile)}</td>
                     </tr>
                     <tr>
                       <td style={{ color: 'var(--text-muted)', padding: '4px 0' }}>চালক NID:</td>
@@ -1195,7 +1195,7 @@ export default function Projects() {
               </div>
 
               <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
-                প্রজেক্ট: <strong>{selectedProject.projectName}</strong> (চালক: {selectedProject.driverName})
+                প্রজেক্ট: <strong>{selectedProject.projectName}</strong> (চালক: <strong>{selectedProject.driverName}</strong>)
               </div>
 
               <form onSubmit={handleInstallmentSubmit}>
@@ -1260,7 +1260,7 @@ export default function Projects() {
               </div>
 
               <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
-                প্রজেক্ট: <strong>{selectedProject.projectName}</strong> (চালক: {selectedProject.driverName})
+                প্রজেক্ট: <strong>{selectedProject.projectName}</strong> (চালক: <strong>{selectedProject.driverName}</strong>)
               </div>
 
               {installmentsList.length === 0 ? (
