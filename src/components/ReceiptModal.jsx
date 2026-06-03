@@ -17,7 +17,6 @@ import { X, Download, MessageCircle, Phone, CheckCircle } from 'lucide-react';
 export default function ReceiptModal({ receipt, onClose }) {
   const receiptRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isSending, setIsSending] = useState(false);
   const [sendStatus, setSendStatus] = useState(''); // '', 'copied', 'shared', 'error'
 
   if (!receipt) return null;
@@ -73,52 +72,11 @@ export default function ReceiptModal({ receipt, onClose }) {
     });
   };
 
-  const sendReceiptToWhatsApp = async (phone) => {
+  const getWhatsAppLink = (phone) => {
     const cleaned = phone.replace(/\D/g, '');
     const intl = cleaned.startsWith('0') ? '880' + cleaned.slice(1) : cleaned;
     const text = buildWhatsAppText();
-    const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
-
-    setIsSending(true);
-    setSendStatus('');
-    try {
-      const canvas = await generateCanvas();
-
-      // Try Web Share API first (works natively on mobile — attaches image to WhatsApp)
-      if (navigator.canShare) {
-        const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
-        const file = new File([blob], `Receipt_${receiptNumber}.png`, { type: 'image/png' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'রশিদ',
-            text,
-            files: [file],
-          });
-          setSendStatus('shared');
-          return;
-        }
-      }
-
-      // Desktop fallback: copy image to clipboard, then open WhatsApp Web
-      try {
-        const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob }),
-        ]);
-        setSendStatus('copied');
-      } catch {
-        // Clipboard write failed — just open WhatsApp without image
-        setSendStatus('error');
-      }
-      window.open(waUrl, '_blank');
-    } catch (err) {
-      console.error('WhatsApp send failed:', err);
-      // If user cancelled share or something else — just open link
-      window.open(waUrl, '_blank');
-      setSendStatus('');
-    } finally {
-      setIsSending(false);
-    }
+    return `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
   };
 
   const handleDownload = async () => {
@@ -451,10 +409,10 @@ export default function ReceiptModal({ receipt, onClose }) {
               marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               <MessageCircle size={16} />
-              রশিদসহ WhatsApp-এ পাঠান
+              বিবরণ WhatsApp-এ পাঠান
             </p>
-            <p style={{ fontSize: '0.72rem', color: '#4ade80', marginBottom: '10px', fontWeight: 500 }}>
-              📱 মোবাইলে ট্যাপ করলে সরাসরি ছবিসহ WhatsApp খুলবে
+            <p style={{ fontSize: '0.72rem', color: '#166534', marginBottom: '10px', fontWeight: 500 }}>
+              📱 সরাসরি WhatsApp-এ রশিদের বিবরণ ও নম্বরসহ টেক্সট মেসেজ পাঠানো হবে
             </p>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -482,50 +440,48 @@ export default function ReceiptModal({ receipt, onClose }) {
                   onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
                 />
               </div>
-              <button
-                onClick={() => sendReceiptToWhatsApp(customNumber)}
-                disabled={!customNumber || customNumber.length < 10 || isSending}
+              <a
+                href={customNumber && customNumber.length >= 10 ? getWhatsAppLink(customNumber) : '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!customNumber || customNumber.length < 10) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setSendStatus('sent');
+                }}
                 style={{
                   padding: '11px 14px', borderRadius: '10px', border: 'none',
-                  background: customNumber.length >= 10 && !isSending
+                  background: customNumber.length >= 10
                     ? 'linear-gradient(135deg, #25d366, #128c7e)'
                     : '#e2e8f0',
-                  color: customNumber.length >= 10 && !isSending ? '#fff' : '#94a3b8',
+                  color: customNumber.length >= 10 ? '#fff' : '#94a3b8',
                   fontWeight: 700,
-                  cursor: customNumber.length >= 10 && !isSending ? 'pointer' : 'not-allowed',
+                  cursor: customNumber.length >= 10 ? 'pointer' : 'not-allowed',
                   fontSize: '0.82rem', fontFamily: 'inherit',
                   transition: 'all 0.2s', whiteSpace: 'nowrap',
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  boxShadow: customNumber.length >= 10 && !isSending
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  boxShadow: customNumber.length >= 10
                     ? '0 4px 12px rgba(37,211,102,0.3)' : 'none',
                   minWidth: '120px', justifyContent: 'center',
+                  textDecoration: 'none',
+                  pointerEvents: customNumber.length >= 10 ? 'auto' : 'none',
                 }}
               >
-                {isSending
-                  ? <>⏳ তৈরি হচ্ছে...</>
-                  : <><MessageCircle size={16} /> রশিদসহ পাঠান</>
-                }
-              </button>
+                <MessageCircle size={16} /> WhatsApp-এ পাঠান
+              </a>
             </div>
 
             {/* Status feedback banners */}
-            {sendStatus === 'shared' && (
+            {sendStatus === 'sent' && (
               <div style={{
                 marginTop: '10px', padding: '8px 12px', borderRadius: '8px',
                 background: '#dcfce7', border: '1px solid #86efac',
                 fontSize: '0.78rem', color: '#166534', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: '6px',
               }}>
-                ✅ রশিদ সফলভাবে WhatsApp-এ শেয়ার হয়েছে!
-              </div>
-            )}
-            {sendStatus === 'copied' && (
-              <div style={{
-                marginTop: '10px', padding: '8px 12px', borderRadius: '8px',
-                background: '#fffbeb', border: '1px solid #fcd34d',
-                fontSize: '0.78rem', color: '#92400e', fontWeight: 600,
-              }}>
-                📋 রশিদের ছবি ক্লিপবোর্ডে কপি হয়েছে! WhatsApp খুলে <strong>Ctrl+V / পেস্ট</strong> করুন।
+                ✅ রশিদের বিবরণসহ WhatsApp খোলা হয়েছে!
               </div>
             )}
             {sendStatus === 'error' && (
@@ -534,7 +490,7 @@ export default function ReceiptModal({ receipt, onClose }) {
                 background: '#fef2f2', border: '1px solid #fca5a5',
                 fontSize: '0.78rem', color: '#991b1b', fontWeight: 600,
               }}>
-                ⚠️ ছবি কপি করা যায়নি। WhatsApp খুলে ম্যানুয়ালি রশিদ যুক্ত করুন।
+                ⚠️ WhatsApp লিংক তৈরি বা ওপেন করতে সমস্যা হয়েছে।
               </div>
             )}
           </div>
