@@ -137,17 +137,19 @@ export default function Reports() {
         { header: 'সদস্য আইডি', key: 'memberId' },
         { header: 'সদস্য নাম', key: 'memberName' },
         { header: 'মোবাইল', key: 'memberMobile' },
-        { header: 'মাস', key: 'monthFormatted' },
         { header: 'তারিখ', key: 'dateFormatted' },
-        { header: 'পরিমাণ', key: 'amountFormatted' }
+        { header: 'মাস', key: 'monthFormatted' },
+        { header: 'পরিমাণ', key: 'amountFormatted' },
+        { header: 'সংগ্রহকারী', key: 'recordedBy' }
       ];
       dataToExport = reportData.map(row => ({
         memberId: row.member?.memberId || '',
         memberName: row.member?.name || 'মুছে ফেলা সদস্য',
         memberMobile: row.member?.mobile || '',
-        monthFormatted: formatBanglaMonth(row.month),
         dateFormatted: formatBanglaDate(row.date),
-        amountFormatted: formatBDT(row.amount)
+        monthFormatted: formatBanglaMonth(row.month),
+        amountFormatted: formatBDT(row.amount),
+        recordedBy: row.recordedBy?.name || 'N/A'
       }));
       filename = 'Savings_Deposits';
       sheetName = 'সঞ্চয় জমা';
@@ -157,56 +159,70 @@ export default function Reports() {
         { header: 'সদস্য নাম', key: 'name' },
         { header: 'মোবাইল', key: 'mobile' },
         { header: 'মাসিক সঞ্চয় কিস্তি', key: 'monthlyDepositAmountFormatted' },
-        { header: 'মোট বকেয়া', key: 'totalDueFormatted' }
+        { header: 'মোট জমাকৃত', key: 'totalDepositedFormatted' },
+        { header: 'মোট বকেয়া', key: 'totalDueFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         memberId: row.memberId,
         name: row.name,
         mobile: row.mobile,
         monthlyDepositAmountFormatted: formatBDT(row.monthlyDepositAmount),
-        totalDueFormatted: formatBDT(row.totalDue)
+        totalDepositedFormatted: formatBDT(row.totalDeposited),
+        totalDueFormatted: formatBDT(row.totalDue),
+        statusFormatted: row.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'
       }));
       filename = 'Member_Dues';
       sheetName = 'সদস্য বকেয়া';
     } else if (activeTab === 3) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
+        { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
         { header: 'চালক মোবাইল', key: 'driverMobile' },
-        { header: 'মাস', key: 'monthFormatted' },
         { header: 'তারিখ', key: 'dateFormatted' },
-        { header: 'পরিমাণ', key: 'amountFormatted' }
+        { header: 'মাস', key: 'monthFormatted' },
+        { header: 'আদায় পরিমাণ', key: 'amountFormatted' },
+        { header: 'সংগ্রহকারী', key: 'recordedBy' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.project?.projectName || 'মুছে ফেলা প্রজেক্ট',
+        projectType: row.project?.projectType || 'N/A',
         driverName: row.project?.driverName || '',
         driverMobile: row.project?.driverMobile || '',
-        monthFormatted: formatBanglaMonth(row.month),
         dateFormatted: formatBanglaDate(row.date),
-        amountFormatted: formatBDT(row.amount)
+        monthFormatted: formatBanglaMonth(row.month),
+        amountFormatted: formatBDT(row.amount),
+        recordedBy: row.recordedBy?.name || 'N/A'
       }));
       filename = 'Project_Installment_Collections';
       sheetName = 'কিস্তি আদায়';
     } else if (activeTab === 4) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
+        { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
         { header: 'চালক মোবাইল', key: 'driverMobile' },
         { header: 'বিনিয়োগ পরিমাণ', key: 'investmentAmountFormatted' },
         { header: 'মোট ফেরত লক্ষ্য', key: 'returnAmountFormatted' },
+        { header: 'মাসিক কিস্তি হার', key: 'monthlyInstallmentAmountFormatted' },
         { header: 'মোট আদায়কৃত', key: 'totalPaidFormatted' },
         { header: 'অবशिष्ट পাওনা', key: 'remainingBalanceFormatted' },
-        { header: 'মোট বকেয়া', key: 'totalDueFormatted' }
+        { header: 'মোট বকেয়া', key: 'totalDueFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.projectName,
+        projectType: row.projectType,
         driverName: row.driverName,
         driverMobile: row.driverMobile,
         investmentAmountFormatted: formatBDT(row.investmentAmount),
         returnAmountFormatted: formatBDT(row.returnAmount),
+        monthlyInstallmentAmountFormatted: formatBDT(row.monthlyInstallmentAmount),
         totalPaidFormatted: formatBDT(row.totalPaid),
         remainingBalanceFormatted: formatBDT(row.remainingBalance),
-        totalDueFormatted: formatBDT(row.totalDue)
+        totalDueFormatted: formatBDT(row.totalDue),
+        statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')
       }));
       filename = 'Project_Dues';
       sheetName = 'বিনিয়োগ বকেয়া';
@@ -215,19 +231,23 @@ export default function Reports() {
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
         { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
+        { header: 'চালক মোবাইল', key: 'driverMobile' },
         { header: 'বিনিয়োগ পরিমাণ', key: 'investmentAmountFormatted' },
         { header: 'ফেরত লক্ষ্য', key: 'returnAmountFormatted' },
         { header: 'মোট আদায়কৃত', key: 'totalPaidFormatted' },
-        { header: 'প্রজেক্ট মুনাফা', key: 'profitFormatted' }
+        { header: 'প্রজেক্ট মুনাফা', key: 'profitFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.projectName,
         projectType: row.projectType,
-        driverName: row.driverName,
+        driverName: row.driverName || 'N/A',
+        driverMobile: row.driverMobile || '',
         investmentAmountFormatted: formatBDT(row.investmentAmount),
         returnAmountFormatted: formatBDT(row.returnAmount),
         totalPaidFormatted: formatBDT(row.totalPaid),
-        profitFormatted: formatBDT(row.profit)
+        profitFormatted: formatBDT(row.profit),
+        statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')
       }));
       filename = 'Profit_Report';
       sheetName = 'মুনাফা রিপোর্ট';
@@ -246,14 +266,20 @@ export default function Reports() {
       cols = [
         { header: 'সদস্য আইডি', key: 'memberId' },
         { header: 'সদস্য নাম', key: 'memberName' },
+        { header: 'মোবাইল', key: 'memberMobile' },
+        { header: 'তারিখ', key: 'dateFormatted' },
         { header: 'মাস', key: 'monthFormatted' },
-        { header: 'পরিমাণ', key: 'amountFormatted' }
+        { header: 'পরিমাণ', key: 'amountFormatted' },
+        { header: 'সংগ্রহকারী', key: 'recordedBy' }
       ];
       dataToExport = reportData.map(row => ({
         memberId: row.member?.memberId || '',
         memberName: row.member?.name || 'মুছে ফেলা সদস্য',
+        memberMobile: row.member?.mobile || '',
+        dateFormatted: formatBanglaDate(row.date),
         monthFormatted: formatBanglaMonth(row.month),
-        amountFormatted: formatBDT(row.amount)
+        amountFormatted: formatBDT(row.amount),
+        recordedBy: row.recordedBy?.name || 'N/A'
       }));
       title = 'সঞ্চয় জমা রিপোর্ট';
       filename = 'Savings_Deposits';
@@ -262,58 +288,96 @@ export default function Reports() {
         { header: 'সদস্য আইডি', key: 'memberId' },
         { header: 'সদস্য নাম', key: 'name' },
         { header: 'মোবাইল', key: 'mobile' },
-        { header: 'মোট বকেয়া', key: 'totalDueFormatted' }
+        { header: 'মাসিক সঞ্চয় কিস্তি', key: 'monthlyDepositAmountFormatted' },
+        { header: 'মোট জমাকৃত', key: 'totalDepositedFormatted' },
+        { header: 'মোট বকেয়া', key: 'totalDueFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         memberId: row.memberId,
         name: row.name,
         mobile: row.mobile,
-        totalDueFormatted: formatBDT(row.totalDue)
+        monthlyDepositAmountFormatted: formatBDT(row.monthlyDepositAmount),
+        totalDepositedFormatted: formatBDT(row.totalDeposited),
+        totalDueFormatted: formatBDT(row.totalDue),
+        statusFormatted: row.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'
       }));
       title = 'সদস্য বকেয়া রিপোর্ট';
       filename = 'Member_Dues';
     } else if (activeTab === 3) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
+        { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
+        { header: 'চালক মোবাইল', key: 'driverMobile' },
+        { header: 'তারিখ', key: 'dateFormatted' },
         { header: 'মাস', key: 'monthFormatted' },
-        { header: 'পরিমাণ', key: 'amountFormatted' }
+        { header: 'পরিমাণ', key: 'amountFormatted' },
+        { header: 'সংগ্রহকারী', key: 'recordedBy' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.project?.projectName || 'মুছে ফেলা প্রজেক্ট',
+        projectType: row.project?.projectType || 'N/A',
         driverName: row.project?.driverName || '',
+        driverMobile: row.project?.driverMobile || '',
+        dateFormatted: formatBanglaDate(row.date),
         monthFormatted: formatBanglaMonth(row.month),
-        amountFormatted: formatBDT(row.amount)
+        amountFormatted: formatBDT(row.amount),
+        recordedBy: row.recordedBy?.name || 'N/A'
       }));
       title = 'প্রজেক্ট কিস্তি আদায় রিপোর্ট';
       filename = 'Project_Installment_Collections';
     } else if (activeTab === 4) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
+        { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
-        { header: 'আদায়কৃত', key: 'totalPaidFormatted' },
-        { header: 'মোট বকেয়া', key: 'totalDueFormatted' }
+        { header: 'চালক মোবাইল', key: 'driverMobile' },
+        { header: 'বিনিয়োগ পরিমাণ', key: 'investmentAmountFormatted' },
+        { header: 'মোট ফেরত লক্ষ্য', key: 'returnAmountFormatted' },
+        { header: 'মাসিক কিস্তি হার', key: 'monthlyInstallmentAmountFormatted' },
+        { header: 'মোট আদায়কৃত', key: 'totalPaidFormatted' },
+        { header: 'অবशिष्ट পাওনা', key: 'remainingBalanceFormatted' },
+        { header: 'মোট বকেয়া', key: 'totalDueFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.projectName,
+        projectType: row.projectType,
         driverName: row.driverName,
+        driverMobile: row.driverMobile,
+        investmentAmountFormatted: formatBDT(row.investmentAmount),
+        returnAmountFormatted: formatBDT(row.returnAmount),
+        monthlyInstallmentAmountFormatted: formatBDT(row.monthlyInstallmentAmount),
         totalPaidFormatted: formatBDT(row.totalPaid),
-        totalDueFormatted: formatBDT(row.totalDue)
+        remainingBalanceFormatted: formatBDT(row.remainingBalance),
+        totalDueFormatted: formatBDT(row.totalDue),
+        statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')
       }));
       title = 'বিনিয়োগ বকেয়া রিপোর্ট';
       filename = 'Project_Dues';
     } else if (activeTab === 5) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
+        { header: 'প্রজেক্ট ধরন', key: 'projectType' },
         { header: 'চালক নাম', key: 'driverName' },
-        { header: 'বিনিয়োগ', key: 'investmentAmountFormatted' },
-        { header: 'মুনাফা', key: 'profitFormatted' }
+        { header: 'চালক মোবাইল', key: 'driverMobile' },
+        { header: 'বিনিয়োগ পরিমাণ', key: 'investmentAmountFormatted' },
+        { header: 'ফেরত লক্ষ্য', key: 'returnAmountFormatted' },
+        { header: 'মোট আদায়কৃত', key: 'totalPaidFormatted' },
+        { header: 'প্রজেক্ট মুনাফা', key: 'profitFormatted' },
+        { header: 'অবস্থা', key: 'statusFormatted' }
       ];
       dataToExport = reportData.map(row => ({
         projectName: row.projectName,
-        driverName: row.driverName,
+        projectType: row.projectType,
+        driverName: row.driverName || 'N/A',
+        driverMobile: row.driverMobile || '',
         investmentAmountFormatted: formatBDT(row.investmentAmount),
-        profitFormatted: formatBDT(row.profit)
+        returnAmountFormatted: formatBDT(row.returnAmount),
+        totalPaidFormatted: formatBDT(row.totalPaid),
+        profitFormatted: formatBDT(row.profit),
+        statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')
       }));
       title = 'মুনাফা রিপোর্ট';
       filename = 'Profit_Report';
@@ -481,21 +545,26 @@ export default function Reports() {
                 <table>
                   <thead>
                     <tr>
-                      <th>সদস্য</th>
+                      <th>সদস্য আইডি</th>
+                      <th>সদস্য নাম</th>
+                      <th>মোবাইল</th>
+                      <th>তারিখ</th>
                       <th>মাস</th>
                       <th>পরিমাণ</th>
+                      <th>সংগ্রহকারী</th>
                       <th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.map((row) => (
                       <tr key={row._id}>
-                        <td>
-                          <div style={{ fontWeight: 'bold' }}>{row.member?.name || 'মুছে ফেলা সদস্য'}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>আইডি: {toBanglaNumber(row.member?.memberId || '')}</div>
-                        </td>
+                        <td>{toBanglaNumber(row.member?.memberId || '')}</td>
+                        <td style={{ fontWeight: 'bold' }}>{row.member?.name || 'মুছে ফেলা সদস্য'}</td>
+                        <td>{toBanglaNumber(row.member?.mobile || '')}</td>
+                        <td>{formatBanglaDate(row.date)}</td>
                         <td>{formatBanglaMonth(row.month)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.amount)}</td>
+                        <td>{row.recordedBy?.name || 'N/A'}</td>
                         <td>
                           {row.member && (
                             <button 
@@ -518,21 +587,30 @@ export default function Reports() {
                 <table>
                   <thead>
                     <tr>
-                      <th>সদস্য</th>
+                      <th>সদস্য আইডি</th>
+                      <th>সদস্য নাম</th>
+                      <th>মোবাইল</th>
                       <th>মাসিক কিস্তি</th>
+                      <th>মোট জমাকৃত</th>
                       <th>মোট বকেয়া</th>
+                      <th>অবস্থা</th>
                       <th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.map((row) => (
                       <tr key={row._id}>
-                        <td>
-                          <div style={{ fontWeight: 'bold' }}>{row.name}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>আইডি: {toBanglaNumber(row.memberId)}</div>
-                        </td>
+                        <td>{toBanglaNumber(row.memberId)}</td>
+                        <td style={{ fontWeight: 'bold' }}>{row.name}</td>
+                        <td>{toBanglaNumber(row.mobile)}</td>
                         <td>{formatBDT(row.monthlyDepositAmount)}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.totalDeposited)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--danger)' }}>{formatBDT(row.totalDue)}</td>
+                        <td>
+                          <span className={`list-badge ${row.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
+                            {row.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                          </span>
+                        </td>
                         <td>
                           <button 
                             className="btn btn-outline btn-sm" 
@@ -553,21 +631,28 @@ export default function Reports() {
                 <table>
                   <thead>
                     <tr>
-                      <th>প্রজেক্ট</th>
+                      <th>প্রজেক্ট নাম</th>
+                      <th>ধরন</th>
+                      <th>চালক নাম</th>
+                      <th>মোবাইল</th>
+                      <th>তারিখ</th>
                       <th>মাস</th>
                       <th>আদায়</th>
+                      <th>সংগ্রহকারী</th>
                       <th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.map((row) => (
                       <tr key={row._id}>
-                        <td>
-                          <div style={{ fontWeight: 'bold' }}>{row.project?.projectName || 'মুছে ফেলা প্রজেক্ট'}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: <strong style={{ fontWeight: 'bold', color: '#1e293b' }}>{row.project?.driverName}</strong></div>
-                        </td>
+                        <td style={{ fontWeight: 'bold' }}>{row.project?.projectName || 'মুছে ফেলা প্রজেক্ট'}</td>
+                        <td>{row.project?.projectType || 'N/A'}</td>
+                        <td>{row.project?.driverName || 'N/A'}</td>
+                        <td>{toBanglaNumber(row.project?.driverMobile || '')}</td>
+                        <td>{formatBanglaDate(row.date)}</td>
                         <td>{formatBanglaMonth(row.month)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.amount)}</td>
+                        <td>{row.recordedBy?.name || 'N/A'}</td>
                         <td>
                           {row.project && (
                             <button 
@@ -590,21 +675,42 @@ export default function Reports() {
                 <table>
                   <thead>
                     <tr>
-                      <th>প্রজেক্ট</th>
+                      <th>প্রজেক্ট নাম</th>
+                      <th>ধরন</th>
+                      <th>চালক নাম</th>
+                      <th>মোবাইল</th>
+                      <th>বিনিয়োগ</th>
+                      <th>ফেরত লক্ষ্য</th>
+                      <th>মাসিক কিস্তি</th>
+                      <th>মোট আদায়কৃত</th>
                       <th>অবশিষ্ট পাওনা</th>
                       <th>মোট বকেয়া</th>
+                      <th>অবস্থা</th>
                       <th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.map((row) => (
                       <tr key={row._id}>
-                        <td>
-                          <div style={{ fontWeight: 'bold' }}>{row.projectName}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>চালক: <strong style={{ fontWeight: 'bold', color: '#1e293b' }}>{row.driverName}</strong></div>
-                        </td>
-                        <td>{formatBDT(row.remainingBalance)}</td>
+                        <td style={{ fontWeight: 'bold' }}>{row.projectName}</td>
+                        <td>{row.projectType}</td>
+                        <td>{row.driverName}</td>
+                        <td>{toBanglaNumber(row.driverMobile)}</td>
+                        <td>{formatBDT(row.investmentAmount)}</td>
+                        <td>{formatBDT(row.returnAmount)}</td>
+                        <td>{formatBDT(row.monthlyInstallmentAmount)}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.totalPaid)}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{formatBDT(row.remainingBalance)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--danger)' }}>{formatBDT(row.totalDue)}</td>
+                        <td>
+                          <span className={`list-badge ${
+                            row.status === 'completed' 
+                              ? 'badge-success' 
+                              : (row.status === 'due' ? 'badge-danger' : 'badge-warning')
+                          }`}>
+                            {row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')}
+                          </span>
+                        </td>
                         <td>
                           <button 
                             className="btn btn-outline btn-sm" 
@@ -625,24 +731,38 @@ export default function Reports() {
                 <table>
                   <thead>
                     <tr>
-                      <th>প্রজেক্ট</th>
-                      <th>বিনিয়োগ/ফেরত</th>
+                      <th>প্রজেক্ট নাম</th>
+                      <th>ধরন</th>
+                      <th>চালক নাম</th>
+                      <th>মোবাইল</th>
+                      <th>বিনিয়োগ</th>
+                      <th>ফেরত লক্ষ্য</th>
+                      <th>মোট আদায়কৃত</th>
                       <th>মোট মুনাফা</th>
+                      <th>অবস্থা</th>
                       <th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.map((row) => (
                       <tr key={row._id}>
-                        <td>
-                          <div style={{ fontWeight: 'bold' }}>{row.projectName}</div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ধরন: {row.projectType}</div>
-                        </td>
-                        <td>
-                          <div style={{ color: 'var(--text-muted)' }}>বিনিয়োগ: {toBanglaNumber(row.investmentAmount)}</div>
-                          <div style={{ color: 'var(--success)' }}>ফেরত: {toBanglaNumber(row.returnAmount)}</div>
-                        </td>
+                        <td style={{ fontWeight: 'bold' }}>{row.projectName}</td>
+                        <td>{row.projectType}</td>
+                        <td>{row.driverName || 'N/A'}</td>
+                        <td>{toBanglaNumber(row.driverMobile || '')}</td>
+                        <td>{formatBDT(row.investmentAmount)}</td>
+                        <td>{formatBDT(row.returnAmount)}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.totalPaid)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{formatBDT(row.profit)}</td>
+                        <td>
+                          <span className={`list-badge ${
+                            row.status === 'completed' 
+                              ? 'badge-success' 
+                              : (row.status === 'due' ? 'badge-danger' : 'badge-warning')
+                          }`}>
+                            {row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি')}
+                          </span>
+                        </td>
                         <td>
                           <button 
                             className="btn btn-outline btn-sm" 
@@ -660,19 +780,87 @@ export default function Reports() {
             </div>
 
             {/* Sum Aggregate Summary Panel */}
-            <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '5px solid var(--accent)' }}>
-              <div>
-                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                  {activeTab === 1 && 'নির্বাচিত সময়ে মোট সঞ্চয় জমা'}
-                  {activeTab === 2 && 'মোট বকেয়া সঞ্চয় পরিমাণ'}
-                  {activeTab === 3 && 'নির্বাচিত সময়ে মোট কিস্তি আদায়'}
-                  {activeTab === 4 && 'মোট বকেয়া কিস্তি পরিমাণ'}
-                  {activeTab === 5 && 'মোট প্রাক্কলিত মুনাফা'}
-                </h4>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--accent)' }}>
-                {formatBDT(calculateTotalAmount())}
-              </h3>
+            <div className="card" style={{ borderLeft: '5px solid var(--accent)', padding: '16px' }}>
+              <h4 style={{ fontSize: '1rem', color: 'var(--primary-dark)', marginBottom: '12px', fontWeight: 'bold' }}>
+                মোট সারসংক্ষেপ (Summary Totals)
+              </h4>
+              
+              {activeTab === 1 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>নির্বাচিত সময়ে মোট সঞ্চয় জমা:</span>
+                  <strong style={{ fontSize: '1.2rem', color: 'var(--success)' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.amount || 0), 0))}</strong>
+                </div>
+              )}
+
+              {activeTab === 2 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>মোট মাসিক কিস্তি</span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--text-main)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.monthlyDepositAmount || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>মোট জমাকৃত সঞ্চয়</span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--success)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.totalDeposited || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>মোট বকেয়া সঞ্চয়</span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--danger)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.totalDue || 0), 0))}</strong>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 3 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>নির্বাচিত সময়ে মোট কিস্তি আদায়:</span>
+                  <strong style={{ fontSize: '1.2rem', color: 'var(--success)' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.amount || 0), 0))}</strong>
+                </div>
+              )}
+
+              {activeTab === 4 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট বিনিয়োগ</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.investmentAmount || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট ফেরত লক্ষ্য</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.returnAmount || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট আদায়কৃত</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--success)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.totalPaid || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট অবশিষ্ট পাওনা</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--accent)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.remainingBalance || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট কিস্তি বকেয়া</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--danger)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.totalDue || 0), 0))}</strong>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 5 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট বিনিয়োগ</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.investmentAmount || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট ফেরত লক্ষ্য</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.returnAmount || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট আদায়কৃত</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--success)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.totalPaid || 0), 0))}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট মুনাফা</span>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--primary-dark)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.profit || 0), 0))}</strong>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
