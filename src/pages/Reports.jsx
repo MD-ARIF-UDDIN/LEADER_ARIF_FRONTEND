@@ -13,13 +13,19 @@ export default function Reports() {
   const isAdmin = user.role === 'admin';
 
   // Filters
-  const [filterType, setFilterType] = useState('month'); // 'date' | 'month' | 'year'
+  const [filterType, setFilterType] = useState('month'); // 'date' | 'month' | 'year' | 'custom' | 'alltime'
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterMonth, setFilterMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterStartDate, setFilterStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split('T')[0];
+  });
+  const [filterEndDate, setFilterEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Report tabs
   // 1: Member Deposits, 2: Member Dues, 3: Project Collections, 4: Project Dues, 5: Profits
@@ -46,7 +52,10 @@ export default function Reports() {
         queryParams = `?month=${filterMonth}`;
       } else if (filterType === 'year' && filterYear) {
         queryParams = `?year=${filterYear}`;
+      } else if (filterType === 'custom' && filterStartDate && filterEndDate) {
+        queryParams = `?startDate=${filterStartDate}&endDate=${filterEndDate}`;
       }
+      // filterType === 'alltime' sends no params → backend returns all records
 
       let endpoint = '';
       if (activeTab === 1) {
@@ -87,7 +96,7 @@ export default function Reports() {
 
   useEffect(() => {
     fetchReport();
-  }, [activeTab, filterType, filterDate, filterMonth, filterYear]);
+  }, [activeTab, filterType, filterDate, filterMonth, filterYear, filterStartDate, filterEndDate]);
 
   useEffect(() => {
     if (isAdmin && (activeTab === 3 || activeTab === 4 || activeTab === 5)) {
@@ -449,27 +458,41 @@ export default function Reports() {
         {/* Filters Panel (Dues and Profit reports don't need Date/Month filters, they are cumulative) */}
         {activeTab !== 2 && activeTab !== 4 && activeTab !== 5 && (
           <div className="card" style={{ padding: '12px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
               <button 
                 className={`btn btn-sm ${filterType === 'date' ? 'btn-primary' : 'btn-outline'}`}
-                style={{ flex: 1, minHeight: '36px' }}
+                style={{ flex: 1, minHeight: '36px', minWidth: '80px' }}
                 onClick={() => setFilterType('date')}
               >
-                তারিখ ফিল্টার
+                তারিখ
               </button>
               <button 
                 className={`btn btn-sm ${filterType === 'month' ? 'btn-primary' : 'btn-outline'}`}
-                style={{ flex: 1, minHeight: '36px' }}
+                style={{ flex: 1, minHeight: '36px', minWidth: '80px' }}
                 onClick={() => setFilterType('month')}
               >
-                মাস ফিল্টার
+                মাস
               </button>
               <button 
                 className={`btn btn-sm ${filterType === 'year' ? 'btn-primary' : 'btn-outline'}`}
-                style={{ flex: 1, minHeight: '36px' }}
+                style={{ flex: 1, minHeight: '36px', minWidth: '80px' }}
                 onClick={() => setFilterType('year')}
               >
-                বছর ফিল্টার
+                বছর
+              </button>
+              <button 
+                className={`btn btn-sm ${filterType === 'custom' ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, minHeight: '36px', minWidth: '80px' }}
+                onClick={() => setFilterType('custom')}
+              >
+                কাস্টম রেঞ্জ
+              </button>
+              <button 
+                className={`btn btn-sm ${filterType === 'alltime' ? 'btn-primary' : 'btn-outline'}`}
+                style={{ flex: 1, minHeight: '36px', minWidth: '80px' }}
+                onClick={() => setFilterType('alltime')}
+              >
+                সব সময়
               </button>
             </div>
 
@@ -501,6 +524,35 @@ export default function Reports() {
                   <option value="2027">২০২৭ সাল</option>
                   <option value="2028">২০২৮ সাল</option>
                 </select>
+              )}
+              {filterType === 'custom' && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>শুরুর তারিখ</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={filterStartDate}
+                      max={filterEndDate}
+                      onChange={(e) => setFilterStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>শেষ তারিখ</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={filterEndDate}
+                      min={filterStartDate}
+                      onChange={(e) => setFilterEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+              {filterType === 'alltime' && (
+                <div style={{ textAlign: 'center', padding: '8px 0', fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  📋 সকল সময়ের সমস্ত রেকর্ড দেখানো হচ্ছে
+                </div>
               )}
             </div>
           </div>
