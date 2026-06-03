@@ -44,8 +44,8 @@ export default function Home() {
       <Header title="ড্যাশবোর্ড" />
 
       <main className="content-wrapper">
-        <div className="card" style={{ 
-          marginBottom: '20px', 
+        <div className="card" style={{
+          marginBottom: '20px',
           background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
           color: 'white',
           border: 'none',
@@ -57,7 +57,7 @@ export default function Home() {
           boxShadow: 'var(--shadow-md)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src="/logo.jpeg" alt="Logo" style={{ 
+            <img src="/logo.jpeg" alt="Logo" style={{
               width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover',
               border: '2px solid rgba(255,255,255,0.3)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
@@ -76,7 +76,7 @@ export default function Home() {
           {/* President Profile Section */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.12)', padding: '6px 12px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>আরিফুল ইসলাম</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>আরিফুল রহমান</div>
               <div style={{ fontSize: '0.68rem', color: '#a5f3fc', fontWeight: 600 }}>সভাপতি</div>
             </div>
             <img src="/president.png" alt="Ariful Islam" style={{
@@ -100,8 +100,8 @@ export default function Home() {
         ) : user.role === 'admin' && stats ? (
           <div>
             {/* Current Balance Highlight Card */}
-            <div className="card" style={{ 
-              marginBottom: '16px', 
+            <div className="card" style={{
+              marginBottom: '16px',
               background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
               color: 'white',
               border: 'none',
