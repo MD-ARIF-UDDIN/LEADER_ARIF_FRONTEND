@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import { X, Download, MessageCircle, Phone, CheckCircle } from 'lucide-react';
 
 /**
@@ -424,7 +424,7 @@ export default function ReceiptModal({ receipt, onClose }) {
                 }} />
                 <input
                   type="tel"
-                  maxLength="11"
+                  maxLength="16"
                   placeholder="নম্বর লিখুন..."
                   value={customNumber}
                   onChange={(e) => setCustomNumber(e.target.value)}

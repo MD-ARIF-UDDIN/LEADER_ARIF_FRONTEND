@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../utils/api';
@@ -413,7 +413,7 @@ export default function Profile() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     placeholder="যেমন: 01700000000"
                     value={userForm.mobile}
@@ -524,7 +524,7 @@ export default function Profile() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     value={userForm.mobile}
                     onChange={(e) => setUserForm({ ...userForm, mobile: e.target.value })}

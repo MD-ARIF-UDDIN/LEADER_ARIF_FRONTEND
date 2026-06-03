@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../utils/api';
@@ -775,7 +775,7 @@ export default function Projects() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     placeholder="মোবাইল নম্বর"
                     value={projectForm.driverMobile}
@@ -826,7 +826,7 @@ export default function Projects() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     placeholder="নমিনির মোবাইল"
                     value={projectForm.nomineeMobile}
@@ -1010,7 +1010,7 @@ export default function Projects() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     value={projectForm.driverMobile}
                     onChange={(e) => setProjectForm({ ...projectForm, driverMobile: e.target.value })}
@@ -1055,7 +1055,7 @@ export default function Projects() {
                   <input
                     type="tel"
                     required
-                    maxLength="11"
+                    maxLength="16"
                     className="form-control"
                     value={projectForm.nomineeMobile}
                     onChange={(e) => setProjectForm({ ...projectForm, nomineeMobile: e.target.value })}

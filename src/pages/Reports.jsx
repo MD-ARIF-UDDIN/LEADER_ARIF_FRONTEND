@@ -71,21 +71,8 @@ export default function Reports() {
       }
 
       const data = await apiRequest(`${endpoint}${queryParams}`);
-      
-      // If role is member, filter reports to only show their own data
-      if (user.role === 'member') {
-        if (activeTab === 1) {
-          // Member Deposits: Filter by member._id
-          setReportData(data.filter(item => item.member && String(item.member._id) === String(user.memberId)));
-        } else if (activeTab === 2) {
-          // Member Dues: Filter by member _id
-          setReportData(data.filter(item => String(item._id) === String(user.memberId)));
-        } else {
-          setReportData([]);
-        }
-      } else {
-        setReportData(data);
-      }
+      // All roles see all data — members can view but not manipulate
+      setReportData(data);
     } catch (err) {
       setError(err.message || 'রিপোর্ট ডাটা লোড করা সম্ভব হয়নি');
       setReportData([]);
@@ -416,7 +403,7 @@ export default function Reports() {
 
       <main className="content-wrapper">
 
-        {/* Report Tabs (Filter out Project and Profit reports for normal members) */}
+        {/* Report Tabs - all tabs visible to both admin and member */}
         <div className="tab-container">
           <button 
             className={`tab-btn ${activeTab === 1 ? 'active' : ''}`}
@@ -431,7 +418,7 @@ export default function Reports() {
             সদস্য বকেয়া
           </button>
           
-          {isAdmin && (
+          {true && (
             <>
               <button 
                 className={`tab-btn ${activeTab === 3 ? 'active' : ''}`}
