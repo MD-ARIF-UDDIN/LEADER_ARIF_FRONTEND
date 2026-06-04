@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../utils/api';
@@ -224,6 +224,32 @@ export default function Profile() {
               )}
             </tbody>
           </table>
+
+          <button 
+            className="btn btn-danger btn-sm" 
+            onClick={handleLogout}
+            style={{ 
+              marginTop: '12px', 
+              gap: '6px',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#dc2626',
+              fontWeight: 700,
+              minHeight: '38px',
+              width: '100%',
+              borderRadius: '10px',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+            }}
+          >
+            <LogOut size={16} />
+            <span>লগআউট (Logout)</span>
+          </button>
         </div>
 
         {/* Admin Panels */}
