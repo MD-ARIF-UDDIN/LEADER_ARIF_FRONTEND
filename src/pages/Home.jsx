@@ -232,6 +232,7 @@ export default function Home() {
                   <div className="kpi-title">সর্বমোট বকেয়া</div>
                 </div>
                 <div className="kpi-value">{formatBDT(stats.totalDueAmount)}</div>
+              </div>
             </div>
 
             <div className="grid-2">
