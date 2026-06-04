@@ -17,15 +17,36 @@ export default function Home() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        if (user.role === 'admin') {
-          const data = await apiRequest('/api/reports/dashboard');
-          setStats(data);
-        } else {
-          // If member, fetch their personal member profile from /api/members
-          // The route returns a list of members matching their permissions (which returns only their profile)
-          const data = await apiRequest('/api/members');
-          if (data && data.length > 0) {
-            setMemberStats(data[0]);
+        // Fetch overall dashboard statistics for both admin and member
+        const dashboardData = await apiRequest('/api/reports/dashboard');
+        setStats(dashboardData);
+
+        if (user.role !== 'admin') {
+          // If member, fetch their personal member profile
+          const myMemberId = user.memberId?._id || user.memberId;
+          if (myMemberId) {
+            try {
+              // Fetch individual member details directly to get precise calculations
+              const memberDetail = await apiRequest(`/api/members/${myMemberId}`);
+              if (memberDetail && memberDetail.member) {
+                const mappedMember = {
+                  ...memberDetail.member,
+                  totalDeposited: memberDetail.calculations.totalDeposited,
+                  totalDue: memberDetail.calculations.totalDue,
+                  currentBalance: memberDetail.calculations.currentBalance,
+                  monthsElapsed: memberDetail.calculations.monthsElapsed
+                };
+                setMemberStats(mappedMember);
+              }
+            } catch (memberErr) {
+              console.error('Error fetching individual member details:', memberErr);
+              // Fallback: Fetch all members and find the logged-in user
+              const membersData = await apiRequest('/api/members');
+              const foundMember = membersData.find(m => m._id === myMemberId || m.mobile === user.mobile);
+              if (foundMember) {
+                setMemberStats(foundMember);
+              }
+            }
           }
         }
       } catch (err) {
@@ -265,7 +286,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: 'var(--font-sm)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>নির্ধারিত মাসিক কিস্তির হার</span>
                 <h3 style={{ fontSize: 'var(--kpi-font)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatBDT(memberStats.monthlyDepositAmount)}</h3>
@@ -275,6 +296,143 @@ export default function Home() {
                 <h3 style={{ fontSize: 'var(--kpi-font)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{toBanglaNumber(memberStats.monthsElapsed)} মাস</h3>
               </div>
             </div>
+
+            {/* General Dashboard Summary Cards for Member */}
+            {stats && (
+              <div>
+                <h3 style={{
+                  fontSize: '1.05rem',
+                  margin: '28px 0 16px 4px',
+                  color: 'var(--primary-dark)',
+                  borderLeft: '4px solid var(--primary)',
+                  paddingLeft: '10px',
+                  fontWeight: 700
+                }}>
+                  সমিতির সার্বিক অবস্থা (ড্যাশবোর্ড)
+                </h3>
+
+                {/* Current Balance Highlight Card */}
+                <div className="card" style={{
+                  marginBottom: '16px',
+                  background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '18px 20px',
+                  boxShadow: 'var(--shadow-md)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>সমিতির চলতি তহবিল (বর্তমান ব্যালেন্স)</span>
+                    <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
+                      {formatBDT(stats.totalDeposits + stats.totalInstallmentsCollected - stats.totalInvestments)}
+                    </h2>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Wallet size={28} color="white" />
+                  </div>
+                </div>
+
+                {/* Admin Grid Cards */}
+                <div className="grid-2">
+                  <div className="kpi-card">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <Users size={18} color="var(--primary)" />
+                      </div>
+                      <div className="kpi-title">মোট সদস্য</div>
+                    </div>
+                    <div className="kpi-value">{toBanglaNumber(stats.totalMembers)} জন</div>
+                  </div>
+
+                  <div className="kpi-card success">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <Landmark size={18} color="var(--success)" />
+                      </div>
+                      <div className="kpi-title">মোট সঞ্চয় জমা</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalDeposits)}</div>
+                  </div>
+                </div>
+
+                <div className="grid-2">
+                  <div className="kpi-card danger">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <AlertCircle size={18} color="var(--danger)" />
+                      </div>
+                      <div className="kpi-title">সদস্য সঞ্চয় বকেয়া</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.memberDueAmount)}</div>
+                  </div>
+
+                  <div className="kpi-card danger">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <AlertCircle size={18} color="var(--danger)" />
+                      </div>
+                      <div className="kpi-title">প্রজেক্ট কিস্তি বকেয়া</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.projectDueAmount)}</div>
+                  </div>
+                </div>
+
+                <div className="grid-2">
+                  <div className="kpi-card accent">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <TrendingUp size={18} color="var(--accent)" />
+                      </div>
+                      <div className="kpi-title">মোট বিনিয়োগ</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalInvestments)}</div>
+                  </div>
+
+                  <div className="kpi-card success">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <HandCoins size={18} color="var(--success)" />
+                      </div>
+                      <div className="kpi-title">কিস্তি আদায়</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalInstallmentsCollected)}</div>
+                  </div>
+                </div>
+
+                <div className="grid-2">
+                  <div className="kpi-card">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <LandmarkIcon size={18} color="var(--primary)" />
+                      </div>
+                      <div className="kpi-title">প্রজেক্ট মোট মুনাফা</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalProfit)}</div>
+                  </div>
+
+                  <div className="kpi-card danger">
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <AlertCircle size={18} color="var(--danger)" />
+                      </div>
+                      <div className="kpi-title">সর্বমোট বকেয়া</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalDueAmount)}</div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '5px solid var(--primary)', marginBottom: '16px' }}>
+                  <div style={{ minWidth: 0, flex: 1, marginRight: '8px' }}>
+                    <h4 style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>চলতি সক্রিয় প্রজেক্ট সংখ্যা</h4>
+                    <h2 style={{ fontSize: 'var(--kpi-font)', marginTop: '4px' }}>{toBanglaNumber(stats.activeProjects)} টি</h2>
+                  </div>
+                  <CheckCircle2 size={36} color="var(--primary)" style={{ flexShrink: 0 }} />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="card" style={{ textAlign: 'center', padding: '24px' }}>
