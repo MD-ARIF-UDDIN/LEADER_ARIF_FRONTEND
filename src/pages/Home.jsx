@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
-import { Users, Landmark, AlertCircle, TrendingUp, HandCoins, LandmarkIcon, CheckCircle2, Wallet } from 'lucide-react';
+import { Users, Landmark, AlertCircle, TrendingUp, HandCoins, LandmarkIcon, CheckCircle2, Wallet, Receipt } from 'lucide-react';
 
 export default function Home() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [memberStats, setMemberStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ export default function Home() {
               <div>
                 <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>সমিতির চলতি তহবিল (বর্তমান ব্যালেন্স)</span>
                 <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
-                  {formatBDT(stats.totalDeposits + stats.totalInstallmentsCollected - stats.totalInvestments)}
+                  {formatBDT(stats.totalDeposits + stats.totalInstallmentsCollected - stats.totalInvestments - (stats.totalExpenses || 0))}
                 </h2>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -230,15 +232,28 @@ export default function Home() {
                   <div className="kpi-title">সর্বমোট বকেয়া</div>
                 </div>
                 <div className="kpi-value">{formatBDT(stats.totalDueAmount)}</div>
-              </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '5px solid var(--primary)' }}>
-              <div style={{ minWidth: 0, flex: 1, marginRight: '8px' }}>
-                <h4 style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>চলতি সক্রিয় প্রজেক্ট সংখ্যা</h4>
-                <h2 style={{ fontSize: 'var(--kpi-font)', marginTop: '4px' }}>{toBanglaNumber(stats.activeProjects)} টি</h2>
+            <div className="grid-2">
+              <div className="kpi-card danger" onClick={() => navigate('/expenses')} style={{ cursor: 'pointer', borderLeft: '4px solid #be123c' }}>
+                <div>
+                  <div className="kpi-icon-wrapper">
+                    <Receipt size={18} color="#be123c" />
+                  </div>
+                  <div className="kpi-title">মোট খরচ (ব্যয়)</div>
+                </div>
+                <div className="kpi-value">{formatBDT(stats.totalExpenses || 0)}</div>
               </div>
-              <CheckCircle2 size={36} color="var(--primary)" style={{ flexShrink: 0 }} />
+
+              <div className="kpi-card" onClick={() => navigate('/projects')} style={{ cursor: 'pointer' }}>
+                <div>
+                  <div className="kpi-icon-wrapper">
+                    <CheckCircle2 size={18} color="var(--primary)" />
+                  </div>
+                  <div className="kpi-title">সক্রিয় প্রজেক্ট</div>
+                </div>
+                <div className="kpi-value">{toBanglaNumber(stats.activeProjects)} টি</div>
+              </div>
             </div>
           </div>
         ) : memberStats ? (
@@ -327,7 +342,7 @@ export default function Home() {
                   <div>
                     <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>সমিতির চলতি তহবিল (বর্তমান ব্যালেন্স)</span>
                     <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
-                      {formatBDT(stats.totalDeposits + stats.totalInstallmentsCollected - stats.totalInvestments)}
+                      {formatBDT(stats.totalDeposits + stats.totalInstallmentsCollected - stats.totalInvestments - (stats.totalExpenses || 0))}
                     </h2>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -424,12 +439,26 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '5px solid var(--primary)', marginBottom: '16px' }}>
-                  <div style={{ minWidth: 0, flex: 1, marginRight: '8px' }}>
-                    <h4 style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>চলতি সক্রিয় প্রজেক্ট সংখ্যা</h4>
-                    <h2 style={{ fontSize: 'var(--kpi-font)', marginTop: '4px' }}>{toBanglaNumber(stats.activeProjects)} টি</h2>
+                <div className="grid-2" style={{ marginBottom: '16px' }}>
+                  <div className="kpi-card danger" onClick={() => navigate('/expenses')} style={{ cursor: 'pointer', borderLeft: '4px solid #be123c' }}>
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <Receipt size={18} color="#be123c" />
+                      </div>
+                      <div className="kpi-title">মোট খরচ (ব্যয়)</div>
+                    </div>
+                    <div className="kpi-value">{formatBDT(stats.totalExpenses || 0)}</div>
                   </div>
-                  <CheckCircle2 size={36} color="var(--primary)" style={{ flexShrink: 0 }} />
+
+                  <div className="kpi-card" onClick={() => navigate('/projects')} style={{ cursor: 'pointer' }}>
+                    <div>
+                      <div className="kpi-icon-wrapper">
+                        <CheckCircle2 size={18} color="var(--primary)" />
+                      </div>
+                      <div className="kpi-title">সক্রিয় প্রজেক্ট</div>
+                    </div>
+                    <div className="kpi-value">{toBanglaNumber(stats.activeProjects)} টি</div>
+                  </div>
                 </div>
               </div>
             )}

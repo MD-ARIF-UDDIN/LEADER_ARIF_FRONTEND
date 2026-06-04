@@ -8,6 +8,7 @@ import Members from './pages/Members';
 import Projects from './pages/Projects';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
+import Expenses from './pages/Expenses';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -62,6 +63,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/expenses" 
+            element={
+              <ProtectedRoute>
+                <Expenses />
               </ProtectedRoute>
             } 
           />

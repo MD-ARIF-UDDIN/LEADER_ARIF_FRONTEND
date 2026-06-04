@@ -12,6 +12,17 @@ export default function Reports() {
   const { user } = useAuth();
   const isAdmin = user.role === 'admin';
 
+  const getCategoryLabel = (cat) => {
+    const categories = {
+      'function': 'অনুষ্ঠান',
+      'document': 'কাগজপত্র ও দলিল',
+      'tea_snacks': 'চা-নাস্তা',
+      'office': 'অফিস খরচ',
+      'other': 'অন্যান্য'
+    };
+    return categories[cat] || 'অন্যান্য';
+  };
+
   // Filters
   const [filterType, setFilterType] = useState('month'); // 'date' | 'month' | 'year' | 'custom' | 'alltime'
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
@@ -68,6 +79,8 @@ export default function Reports() {
         endpoint = '/api/reports/project-dues';
       } else if (activeTab === 5) {
         endpoint = '/api/reports/profits';
+      } else if (activeTab === 6) {
+        endpoint = '/api/expenses';
       }
 
       const data = await apiRequest(`${endpoint}${queryParams}`);
@@ -121,7 +134,7 @@ export default function Reports() {
 
   // Calculate sum of amount column
   const calculateTotalAmount = () => {
-    if (activeTab === 1 || activeTab === 3) {
+    if (activeTab === 1 || activeTab === 3 || activeTab === 6) {
       return reportData.reduce((sum, item) => sum + item.amount, 0);
     } else if (activeTab === 2) {
       return reportData.reduce((sum, item) => sum + item.totalDue, 0);
@@ -262,6 +275,32 @@ export default function Reports() {
       }));
       filename = 'Profit_Report';
       sheetName = 'মুনাফা রিপোর্ট';
+    } else if (activeTab === 6) {
+      const categories = {
+        'function': 'অনুষ্ঠান',
+        'document': 'কাগজপত্র ও দলিল',
+        'tea_snacks': 'চা-নাস্তা',
+        'office': 'অফিস খরচ',
+        'other': 'অন্যান্য'
+      };
+      cols = [
+        { header: 'শিরোনাম', key: 'title' },
+        { header: 'ক্যাটাগরি', key: 'categoryLabel' },
+        { header: 'পরিমাণ', key: 'amountFormatted' },
+        { header: 'তারিখ', key: 'dateFormatted' },
+        { header: 'রেকর্ডকারী', key: 'recordedBy' },
+        { header: 'বিবরণ', key: 'description' }
+      ];
+      dataToExport = reportData.map(row => ({
+        title: row.title,
+        categoryLabel: categories[row.category] || 'অন্যান্য',
+        amountFormatted: formatBDT(row.amount),
+        dateFormatted: formatBanglaDate(row.date),
+        recordedBy: row.recordedBy?.name || 'N/A',
+        description: row.description || ''
+      }));
+      filename = 'Expense_Report';
+      sheetName = 'খরচ রিপোর্ট';
     }
 
     exportToExcel(dataToExport, cols, filename, sheetName);
@@ -392,6 +431,30 @@ export default function Reports() {
       }));
       title = 'মুনাফা রিপোর্ট';
       filename = 'Profit_Report';
+    } else if (activeTab === 6) {
+      const categories = {
+        'function': 'অনুষ্ঠান',
+        'document': 'কাগজপত্র ও দলিল',
+        'tea_snacks': 'চা-নাস্তা',
+        'office': 'অফিস খরচ',
+        'other': 'অন্যান্য'
+      };
+      cols = [
+        { header: 'শিরোনাম', key: 'title' },
+        { header: 'ক্যাটাগরি', key: 'categoryLabel' },
+        { header: 'পরিমাণ', key: 'amountFormatted' },
+        { header: 'তারিখ', key: 'dateFormatted' },
+        { header: 'রেকর্ডকারী', key: 'recordedBy' }
+      ];
+      dataToExport = reportData.map(row => ({
+        title: row.title,
+        categoryLabel: categories[row.category] || 'অন্যান্য',
+        amountFormatted: formatBDT(row.amount),
+        dateFormatted: formatBanglaDate(row.date),
+        recordedBy: row.recordedBy?.name || 'N/A'
+      }));
+      title = 'খরচ হিসাব রিপোর্ট';
+      filename = 'Expense_Report';
     }
 
     exportToPDF(dataToExport, cols, title, filename);
@@ -437,6 +500,12 @@ export default function Reports() {
                 onClick={() => setActiveTab(5)}
               >
                 মুনাফা
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 6 ? 'active' : ''}`}
+                onClick={() => setActiveTab(6)}
+              >
+                খরচ
               </button>
             </>
           )}
@@ -919,6 +988,34 @@ export default function Reports() {
                   </tbody>
                 </table>
               )}
+
+              {/* Tab 6: Expense Report */}
+              {activeTab === 6 && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>শিরোনাম</th>
+                      <th>ক্যাটাগরি</th>
+                      <th>তারিখ</th>
+                      <th>পরিমাণ</th>
+                      <th>রেকর্ডকারী</th>
+                      <th>বিবরণ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.map((row) => (
+                      <tr key={row._id}>
+                        <td style={{ fontWeight: 'bold' }}>{row.title}</td>
+                        <td>{getCategoryLabel(row.category)}</td>
+                        <td>{formatBanglaDate(row.date)}</td>
+                        <td style={{ fontWeight: 'bold', color: '#e11d48' }}>-{formatBDT(row.amount)}</td>
+                        <td>{row.recordedBy?.name || 'N/A'}</td>
+                        <td>{row.description || 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             {/* Sum Aggregate Summary Panel */}
@@ -1001,6 +1098,13 @@ export default function Reports() {
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>মোট মুনাফা</span>
                     <strong style={{ fontSize: '0.95rem', color: 'var(--primary-dark)', marginTop: '2px' }}>{formatBDT(reportData.reduce((sum, item) => sum + (item.profit || 0), 0))}</strong>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 6 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>নির্বাচিত সময়ে মোট খরচ:</span>
+                  <strong style={{ fontSize: '1.2rem', color: '#e11d48' }}>-{formatBDT(reportData.reduce((sum, item) => sum + (item.amount || 0), 0))}</strong>
                 </div>
               )}
             </div>
