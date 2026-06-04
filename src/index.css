@@ -166,15 +166,16 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   text-decoration: none;
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  width: 20%;
+  flex: 1;
   height: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 2px;
-  padding: 6px 0;
+  padding: 6px 2px;
   position: relative;
   letter-spacing: 0.01em;
+  min-width: 0;
 }
 
 .nav-item:active {
@@ -185,9 +186,9 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 32px;
-  border-radius: 16px;
+  width: 36px;
+  height: 30px;
+  border-radius: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }

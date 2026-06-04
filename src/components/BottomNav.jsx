@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Users, Briefcase, FileText, User } from 'lucide-react';
+import { Home, Users, Briefcase, FileText, User, Receipt } from 'lucide-react';
 
 export default function BottomNav() {
   return (
@@ -24,6 +24,13 @@ export default function BottomNav() {
           <Briefcase size={20} />
         </div>
         <span>প্রজেক্ট</span>
+      </NavLink>
+
+      <NavLink to="/expenses" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <div className="nav-icon-wrap">
+          <Receipt size={20} />
+        </div>
+        <span>খরচ</span>
       </NavLink>
 
       <NavLink to="/reports" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
