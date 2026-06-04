@@ -34,6 +34,9 @@ export default function Projects() {
   // Form submission loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Flag to prevent auto-calculation during edit mode initial load
+  const [isEditModeLoading, setIsEditModeLoading] = useState(false);
+
   // Forms state
   const [projectForm, setProjectForm] = useState({
     projectName: '',
@@ -135,19 +138,21 @@ export default function Projects() {
 
   // Calculate monthly installment amount in form helper
   useEffect(() => {
+    if (isEditModeLoading) return;
     const retAmt = parseFloat(projectForm.returnAmount);
     const dur = parseInt(projectForm.installmentDuration);
     if (!isNaN(retAmt) && !isNaN(dur) && dur > 0) {
-      const computed = Math.round(retAmt / dur);
+      const computed = Math.ceil(retAmt / dur);
       setProjectForm(prev => ({
         ...prev,
         monthlyInstallmentAmount: computed.toString()
       }));
     }
-  }, [projectForm.returnAmount, projectForm.installmentDuration]);
+  }, [projectForm.returnAmount, projectForm.installmentDuration, isEditModeLoading]);
 
   // Calculate installment duration when monthly installment amount and return amount are provided
   useEffect(() => {
+    if (isEditModeLoading) return;
     const retAmt = parseFloat(projectForm.returnAmount);
     const monthlyAmt = parseFloat(projectForm.monthlyInstallmentAmount);
     if (!isNaN(retAmt) && !isNaN(monthlyAmt) && monthlyAmt > 0) {
@@ -157,7 +162,7 @@ export default function Projects() {
         installmentDuration: computedDuration.toString()
       }));
     }
-  }, [projectForm.returnAmount, projectForm.monthlyInstallmentAmount]);
+  }, [projectForm.returnAmount, projectForm.monthlyInstallmentAmount, isEditModeLoading]);
 
   // Handle Add Project Submit
   const handleAddProject = async (e) => {
@@ -297,6 +302,7 @@ export default function Projects() {
   // Trigger edit modal setup
   const handleOpenEditModal = (project) => {
     setSelectedProject(project);
+    setIsEditModeLoading(true);
     setProjectForm({
       projectName: project.projectName,
       projectType: project.projectType,
@@ -314,6 +320,8 @@ export default function Projects() {
       status: project.status
     });
     setShowEditModal(true);
+    // Re-enable auto-calculation after form is populated
+    setTimeout(() => setIsEditModeLoading(false), 100);
   };
 
   const resetProjectForm = () => {
