@@ -146,6 +146,19 @@ export default function Projects() {
     }
   }, [projectForm.returnAmount, projectForm.installmentDuration]);
 
+  // Calculate installment duration when monthly installment amount and return amount are provided
+  useEffect(() => {
+    const retAmt = parseFloat(projectForm.returnAmount);
+    const monthlyAmt = parseFloat(projectForm.monthlyInstallmentAmount);
+    if (!isNaN(retAmt) && !isNaN(monthlyAmt) && monthlyAmt > 0) {
+      const computedDuration = Math.ceil(retAmt / monthlyAmt);
+      setProjectForm(prev => ({
+        ...prev,
+        installmentDuration: computedDuration.toString()
+      }));
+    }
+  }, [projectForm.returnAmount, projectForm.monthlyInstallmentAmount]);
+
   // Handle Add Project Submit
   const handleAddProject = async (e) => {
     e.preventDefault();
@@ -508,6 +521,7 @@ export default function Projects() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '10px', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                   <div style={{ minWidth: 0 }}>বিনিয়োগ: <strong>{formatBDT(project.investmentAmount)}</strong></div>
                   <div style={{ minWidth: 0 }}>ফেরত লক্ষ্য: <strong>{formatBDT(project.returnAmount)}</strong></div>
+                  <div style={{ minWidth: 0 }}>মাসিক কিস্তি: <strong style={{ color: 'var(--primary)' }}>{formatBDT(project.monthlyInstallmentAmount)}</strong></div>
                   <div style={{ minWidth: 0 }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(project.totalPaid)}</strong></div>
                   <div style={{ minWidth: 0 }}>বকেয়া: <strong style={project.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(project.totalDue)} {project.totalDue > 0 && project.monthlyInstallmentAmount > 0 && `(${toBanglaNumber(Math.round(project.totalDue / project.monthlyInstallmentAmount))} মাস)`}</strong></div>
                 </div>
@@ -920,14 +934,14 @@ export default function Projects() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">নির্ধারিত মাসিক কিস্তির পরিমাণ (৳) - স্বয়ংক্রিয় হিসাব</label>
+                  <label className="form-label">নির্ধারিত মাসিক কিস্তির পরিমাণ (৳)</label>
                   <input
                     type="number"
                     required
-                    disabled
+                    min="1"
                     className="form-control"
-                    style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
                     value={projectForm.monthlyInstallmentAmount}
+                    onChange={(e) => setProjectForm({ ...projectForm, monthlyInstallmentAmount: e.target.value })}
                   />
                   {(() => {
                     const ret = parseFloat(projectForm.returnAmount);
@@ -1143,14 +1157,14 @@ export default function Projects() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">নির্ধারিত মাসিক কিস্তির পরিমাণ (৳) - স্বয়ংক্রিয় হিসাব</label>
+                  <label className="form-label">নির্ধারিত মাসিক কিস্তির পরিমাণ (৳)</label>
                   <input
                     type="number"
                     required
-                    disabled
+                    min="1"
                     className="form-control"
-                    style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
                     value={projectForm.monthlyInstallmentAmount}
+                    onChange={(e) => setProjectForm({ ...projectForm, monthlyInstallmentAmount: e.target.value })}
                   />
                   {(() => {
                     const ret = parseFloat(projectForm.returnAmount);
