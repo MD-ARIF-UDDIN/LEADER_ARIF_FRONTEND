@@ -1,5 +1,37 @@
 import * as XLSX from 'xlsx';
 import html2pdf from 'html2pdf.js';
+import { formatBDT, toBanglaNumber } from './bangla';
+
+const banglaToEnglishNumerals = {
+  '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+  '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+};
+
+function parseBanglaFormattedNumber(val) {
+  if (val === null || val === undefined) return 0;
+  const str = String(val);
+  let englishStr = '';
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    englishStr += banglaToEnglishNumerals[char] || char;
+  }
+  const cleanedStr = englishStr.replace(/[^0-9.-]/g, '');
+  const parsed = parseFloat(cleanedStr);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+function isColumnSummable(col) {
+  if (!col || !col.header) return false;
+  const keywords = ['বিনিয়োগ', 'বিনিয়োগ', 'আদায়', 'আদায়', 'বকেয়া', 'বকেয়া', 'সঞ্চয়', 'সঞ্চয়', 'পরিমাণ', 'জমাকৃত', 'পাওনা', 'মুনাফা', 'লক্ষ্য', 'হার', 'টাকা', '৳', 'amount', 'paid', 'due', 'deposited', 'investment', 'return', 'profit', 'expense', 'fee', 'charge'];
+  const headerLower = col.header.toLowerCase();
+  
+  const excludeKeywords = ['আইডি', 'তারিখ', 'মোবাইল', 'মেয়াদ', 'duration', 'date', 'mobile', 'id', 'status', 'অবস্থা'];
+  if (excludeKeywords.some(ex => headerLower.includes(ex))) {
+    return false;
+  }
+  
+  return keywords.some(kw => headerLower.includes(kw));
+}
 
 /**
  * Export data to Excel (.xlsx)
@@ -74,7 +106,45 @@ export function exportToPDF(data, columns, title = 'রিপোর্ট', file
             </tr>
           `).join('')}
         </tbody>
+        <tfoot>
+          <tr style="background-color: #f1f5f9; font-weight: 700; border-top: 2px solid #0f766e; border-bottom: 2px solid #0f766e;">
+            ${columns.map((c, colIdx) => {
+              if (isColumnSummable(c)) {
+                const total = data.reduce((sum, row) => {
+                  const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
+                  return sum + parseBanglaFormattedNumber(val);
+                }, 0);
+                return `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #0f766e; white-space: nowrap;">${formatBDT(total)}</td>`;
+              } else {
+                return `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #334155; white-space: nowrap;">${colIdx === 0 ? 'সর্বমোট' : ''}</td>`;
+              }
+            }).join('')}
+          </tr>
+        </tfoot>
       </table>
+      ${(() => {
+        const summableCols = columns.filter(c => isColumnSummable(c));
+        if (summableCols.length === 0) return '';
+        return `
+          <div style="margin-top: 24px; padding: 16px; background-color: #f0fdfa; border: 1px solid #ccfbf1; border-left: 5px solid #0f766e; border-radius: 8px;">
+            <h3 style="font-size: 13px; color: #115e59; font-weight: 700; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">রিপোর্ট সারসংক্ষেপ (Report Summary)</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+              ${summableCols.map(c => {
+                const total = data.reduce((sum, row) => {
+                  const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
+                  return sum + parseBanglaFormattedNumber(val);
+                }, 0);
+                return `
+                  <div style="flex: 1; min-width: 140px; background-color: #ffffff; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <span style="font-size: 10px; color: #64748b; display: block; margin-bottom: 4px; font-weight: 600;">মোট ${c.header}</span>
+                    <span style="font-size: 14px; color: #0f766e; font-weight: 800;">${formatBDT(total)}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      })()}
       <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px;">
         © ${new Date().getFullYear()} তরুণ উদ্যোক্তা সমন্বয় সমিতি | সর্বস্বত্ব সংরক্ষিত।
       </div>

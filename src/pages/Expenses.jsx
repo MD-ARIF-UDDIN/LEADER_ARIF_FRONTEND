@@ -20,7 +20,7 @@ export default function Expenses() {
   const [error, setError] = useState('');
 
   // Date Filters
-  const [filterType, setFilterType] = useState('month'); // 'date' | 'month' | 'year' | 'custom' | 'alltime'
+  const [filterType, setFilterType] = useState('alltime'); // 'date' | 'month' | 'year' | 'custom' | 'alltime'
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterMonth, setFilterMonth] = useState(() => {
     const d = new Date();

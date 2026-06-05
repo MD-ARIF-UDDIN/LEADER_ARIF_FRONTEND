@@ -34,9 +34,6 @@ export default function Projects() {
   // Form submission loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Flag to prevent auto-calculation during edit mode initial load
-  const [isEditModeLoading, setIsEditModeLoading] = useState(false);
-
   // Forms state
   const [projectForm, setProjectForm] = useState({
     projectName: '',
@@ -136,33 +133,45 @@ export default function Projects() {
     exportToPDF(dataToExport, cols, 'প্রজেক্ট তালিকা', 'Project_List');
   };
 
-  // Calculate monthly installment amount in form helper
-  useEffect(() => {
-    if (isEditModeLoading) return;
-    const retAmt = parseFloat(projectForm.returnAmount);
+  // Handlers for calculations on user input
+  const handleReturnAmountChange = (val) => {
+    const retAmt = parseFloat(val);
     const dur = parseInt(projectForm.installmentDuration);
-    if (!isNaN(retAmt) && !isNaN(dur) && dur > 0) {
-      const computed = Math.ceil(retAmt / dur);
-      setProjectForm(prev => ({
-        ...prev,
-        monthlyInstallmentAmount: computed.toString()
-      }));
-    }
-  }, [projectForm.returnAmount, projectForm.installmentDuration, isEditModeLoading]);
-
-  // Calculate installment duration when monthly installment amount and return amount are provided
-  useEffect(() => {
-    if (isEditModeLoading) return;
-    const retAmt = parseFloat(projectForm.returnAmount);
     const monthlyAmt = parseFloat(projectForm.monthlyInstallmentAmount);
-    if (!isNaN(retAmt) && !isNaN(monthlyAmt) && monthlyAmt > 0) {
-      const computedDuration = Math.ceil(retAmt / monthlyAmt);
-      setProjectForm(prev => ({
-        ...prev,
-        installmentDuration: computedDuration.toString()
-      }));
-    }
-  }, [projectForm.returnAmount, projectForm.monthlyInstallmentAmount, isEditModeLoading]);
+    setProjectForm(prev => {
+      const updated = { ...prev, returnAmount: val };
+      if (!isNaN(retAmt) && !isNaN(dur) && dur > 0) {
+        updated.monthlyInstallmentAmount = Math.ceil(retAmt / dur).toString();
+      } else if (!isNaN(retAmt) && !isNaN(monthlyAmt) && monthlyAmt > 0) {
+        updated.installmentDuration = Math.ceil(retAmt / monthlyAmt).toString();
+      }
+      return updated;
+    });
+  };
+
+  const handleDurationChange = (val) => {
+    const dur = parseInt(val);
+    const retAmt = parseFloat(projectForm.returnAmount);
+    setProjectForm(prev => {
+      const updated = { ...prev, installmentDuration: val };
+      if (!isNaN(retAmt) && !isNaN(dur) && dur > 0) {
+        updated.monthlyInstallmentAmount = Math.ceil(retAmt / dur).toString();
+      }
+      return updated;
+    });
+  };
+
+  const handleMonthlyAmountChange = (val) => {
+    const monthlyAmt = parseFloat(val);
+    const retAmt = parseFloat(projectForm.returnAmount);
+    setProjectForm(prev => {
+      const updated = { ...prev, monthlyInstallmentAmount: val };
+      if (!isNaN(retAmt) && !isNaN(monthlyAmt) && monthlyAmt > 0) {
+        updated.installmentDuration = Math.ceil(retAmt / monthlyAmt).toString();
+      }
+      return updated;
+    });
+  };
 
   // Handle Add Project Submit
   const handleAddProject = async (e) => {
@@ -302,7 +311,6 @@ export default function Projects() {
   // Trigger edit modal setup
   const handleOpenEditModal = (project) => {
     setSelectedProject(project);
-    setIsEditModeLoading(true);
     setProjectForm({
       projectName: project.projectName,
       projectType: project.projectType,
@@ -320,8 +328,6 @@ export default function Projects() {
       status: project.status
     });
     setShowEditModal(true);
-    // Re-enable auto-calculation after form is populated
-    setTimeout(() => setIsEditModeLoading(false), 100);
   };
 
   const resetProjectForm = () => {
@@ -528,9 +534,23 @@ export default function Projects() {
                 {/* Investment Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '10px', backgroundColor: 'var(--bg-app)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                   <div style={{ minWidth: 0 }}>বিনিয়োগ: <strong>{formatBDT(project.investmentAmount)}</strong></div>
-                  <div style={{ minWidth: 0 }}>ফেরত লক্ষ্য: <strong>{formatBDT(project.returnAmount)}</strong></div>
+                  <div style={{ minWidth: 0 }}>
+                    ফেরত লক্ষ্য: <strong>{formatBDT(project.returnAmount)}</strong>
+                    {project.returnAmount - project.investmentAmount > 0 && (
+                      <span style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.72rem', marginLeft: '4px' }}>
+                        (লাভ: {formatBDT(project.returnAmount - project.investmentAmount)})
+                      </span>
+                    )}
+                  </div>
                   <div style={{ minWidth: 0 }}>মাসিক কিস্তি: <strong style={{ color: 'var(--primary)' }}>{formatBDT(project.monthlyInstallmentAmount)}</strong></div>
-                  <div style={{ minWidth: 0 }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(project.totalPaid)}</strong></div>
+                  <div style={{ minWidth: 0 }}>
+                    আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(project.totalPaid)}</strong>
+                    {project.totalPaid - project.investmentAmount > 0 && (
+                      <span style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.72rem', marginLeft: '4px' }}>
+                        (লাভ: {formatBDT(project.totalPaid - project.investmentAmount)})
+                      </span>
+                    )}
+                  </div>
                   <div style={{ minWidth: 0 }}>বকেয়া: <strong style={project.totalDue > 0 ? { color: 'var(--danger)' } : { color: 'var(--success)' }}>{formatBDT(project.totalDue)} {project.totalDue > 0 && project.monthlyInstallmentAmount > 0 && `(${toBanglaNumber(Math.round(project.totalDue / project.monthlyInstallmentAmount))} মাস)`}</strong></div>
                 </div>
 
@@ -896,7 +916,7 @@ export default function Projects() {
                     className="form-control"
                     placeholder="যেমন: 130000"
                     value={projectForm.returnAmount}
-                    onChange={(e) => setProjectForm({ ...projectForm, returnAmount: e.target.value })}
+                    onChange={(e) => handleReturnAmountChange(e.target.value)}
                   />
                   {/* Dynamic Profit/Loss Feedback */}
                   {(() => {
@@ -937,7 +957,7 @@ export default function Projects() {
                     className="form-control"
                     placeholder="যেমন: 10"
                     value={projectForm.installmentDuration}
-                    onChange={(e) => setProjectForm({ ...projectForm, installmentDuration: e.target.value })}
+                    onChange={(e) => handleDurationChange(e.target.value)}
                   />
                 </div>
 
@@ -949,7 +969,7 @@ export default function Projects() {
                     min="1"
                     className="form-control"
                     value={projectForm.monthlyInstallmentAmount}
-                    onChange={(e) => setProjectForm({ ...projectForm, monthlyInstallmentAmount: e.target.value })}
+                    onChange={(e) => handleMonthlyAmountChange(e.target.value)}
                   />
                   {(() => {
                     const ret = parseFloat(projectForm.returnAmount);
@@ -1120,7 +1140,7 @@ export default function Projects() {
                     min="1"
                     className="form-control"
                     value={projectForm.returnAmount}
-                    onChange={(e) => setProjectForm({ ...projectForm, returnAmount: e.target.value })}
+                    onChange={(e) => handleReturnAmountChange(e.target.value)}
                   />
                   {/* Dynamic Profit/Loss Feedback */}
                   {(() => {
@@ -1160,7 +1180,7 @@ export default function Projects() {
                     min="1"
                     className="form-control"
                     value={projectForm.installmentDuration}
-                    onChange={(e) => setProjectForm({ ...projectForm, installmentDuration: e.target.value })}
+                    onChange={(e) => handleDurationChange(e.target.value)}
                   />
                 </div>
 
@@ -1172,7 +1192,7 @@ export default function Projects() {
                     min="1"
                     className="form-control"
                     value={projectForm.monthlyInstallmentAmount}
-                    onChange={(e) => setProjectForm({ ...projectForm, monthlyInstallmentAmount: e.target.value })}
+                    onChange={(e) => handleMonthlyAmountChange(e.target.value)}
                   />
                   {(() => {
                     const ret = parseFloat(projectForm.returnAmount);

@@ -146,6 +146,30 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Project Profit Highlight Card */}
+            <div className="card" style={{
+              marginBottom: '16px',
+              background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius-lg)',
+              padding: '18px 20px',
+              boxShadow: 'var(--shadow-md)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট মোট মুনাফা (লাভ)</span>
+                <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
+                  {formatBDT(stats.totalProfit)}
+                </h2>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <TrendingUp size={28} color="white" />
+              </div>
+            </div>
+
             {/* Admin Grid Cards */}
             <div className="grid-2">
               <div className="kpi-card">
@@ -348,6 +372,30 @@ export default function Home() {
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Wallet size={28} color="white" />
+                  </div>
+                </div>
+
+                {/* Project Profit Highlight Card */}
+                <div className="card" style={{
+                  marginBottom: '16px',
+                  background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '18px 20px',
+                  boxShadow: 'var(--shadow-md)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট মোট মুনাফা (লাভ)</span>
+                    <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
+                      {formatBDT(stats.totalProfit)}
+                    </h2>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <TrendingUp size={28} color="white" />
                   </div>
                 </div>
 

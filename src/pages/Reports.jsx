@@ -95,6 +95,12 @@ export default function Reports() {
   };
 
   useEffect(() => {
+    if (activeTab === 6) {
+      setFilterType('alltime');
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
     fetchReport();
   }, [activeTab, filterType, filterDate, filterMonth, filterYear, filterStartDate, filterEndDate]);
 
