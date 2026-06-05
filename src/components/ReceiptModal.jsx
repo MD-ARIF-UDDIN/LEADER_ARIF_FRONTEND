@@ -382,15 +382,16 @@ export default function ReceiptModal({ receipt, onClose }) {
               </div>
             </div>
 
-          {/* Bottom zigzag */}
-          <div style={{
-            height: '10px',
-            background: `radial-gradient(circle at 5px 13px, #f1f5f9 6px, #fff 6px)`,
-            backgroundSize: '10px 10px',
-            backgroundRepeat: 'repeat-x',
-            position: 'relative',
-            zIndex: 1,
-          }} />
+            {/* Bottom zigzag */}
+            <div style={{
+              height: '10px',
+              background: `radial-gradient(circle at 5px 13px, #f1f5f9 6px, #fff 6px)`,
+              backgroundSize: '10px 10px',
+              backgroundRepeat: 'repeat-x',
+              position: 'relative',
+              zIndex: 1,
+            }} />
+          </div>
         </div>
 
         {/* ===== ACTION BUTTONS ===== */}

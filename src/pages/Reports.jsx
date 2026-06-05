@@ -69,8 +69,8 @@ export default function Reports() {
         return;
       }
 
-      // Tab 7: Member summary report
-      if (activeTab === 7) {
+      // Tab 1: Member summary report
+      if (activeTab === 1) {
         const data = await apiRequest('/api/reports/member-summary');
         setMemberSummaryData(data.summary);
         setReportData(data.memberReport || []);
@@ -78,7 +78,7 @@ export default function Reports() {
         return;
       }
 
-      // Build query string for tabs 1-6
+      // Build query string for tabs 2-7
       let queryParams = '';
       if (filterType === 'date' && filterDate) {
         queryParams = `?date=${filterDate}`;
@@ -91,12 +91,12 @@ export default function Reports() {
       }
 
       let endpoint = '';
-      if (activeTab === 1) endpoint = '/api/reports/member-deposits';
-      else if (activeTab === 2) endpoint = '/api/reports/member-dues';
-      else if (activeTab === 3) endpoint = '/api/reports/project-collections';
-      else if (activeTab === 4) endpoint = '/api/reports/project-dues';
-      else if (activeTab === 5) endpoint = '/api/reports/profits';
-      else if (activeTab === 6) endpoint = '/api/expenses';
+      if (activeTab === 2) endpoint = '/api/reports/member-deposits';
+      else if (activeTab === 3) endpoint = '/api/reports/member-dues';
+      else if (activeTab === 4) endpoint = '/api/reports/project-collections';
+      else if (activeTab === 5) endpoint = '/api/reports/project-dues';
+      else if (activeTab === 6) endpoint = '/api/reports/profits';
+      else if (activeTab === 7) endpoint = '/api/expenses';
 
       const data = await apiRequest(`${endpoint}${queryParams}`);
       setReportData(data);
@@ -109,7 +109,7 @@ export default function Reports() {
   };
 
   useEffect(() => {
-    if (activeTab === 6) setFilterType('alltime');
+    if (activeTab === 7) setFilterType('alltime');
   }, [activeTab]);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function Reports() {
   }, [activeTab, filterType, filterDate, filterMonth, filterYear, filterStartDate, filterEndDate]);
 
   useEffect(() => {
-    if (isAdmin && (activeTab === 3 || activeTab === 4 || activeTab === 5)) {
+    if (isAdmin && (activeTab === 4 || activeTab === 5 || activeTab === 6)) {
       const fetchAllProjects = async () => {
         try {
           const data = await apiRequest('/api/projects');
@@ -152,9 +152,9 @@ export default function Reports() {
 
   // ─── Excel Export ─────────────────────────────────────────────────────────
   const handleExportExcel = () => {
-    if (activeTab === 0 || activeTab === 7) {
+    if (activeTab === 0 || activeTab === 1) {
       // For summary tabs export the member list table
-      if (activeTab === 7 && memberSummaryData) {
+      if (activeTab === 1 && memberSummaryData) {
         const cols = [
           { header: 'সদস্য আইডি', key: 'memberId' },
           { header: 'সদস্য নাম', key: 'name' },
@@ -190,7 +190,7 @@ export default function Reports() {
 
     let cols = [], dataToExport = [], filename = '', sheetName = '';
 
-    if (activeTab === 1) {
+    if (activeTab === 2) {
       cols = [
         { header: 'সদস্য আইডি', key: 'memberId' },
         { header: 'সদস্য নাম', key: 'memberName' },
@@ -210,7 +210,7 @@ export default function Reports() {
         recordedBy: row.recordedBy?.name || 'N/A',
       }));
       filename = 'Savings_Deposits'; sheetName = 'সঞ্চয় জমা';
-    } else if (activeTab === 2) {
+    } else if (activeTab === 3) {
       cols = [
         { header: 'সদস্য আইডি', key: 'memberId' },
         { header: 'সদস্য নাম', key: 'name' },
@@ -458,13 +458,15 @@ export default function Reports() {
         statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি'),
       }));
       title = 'বিনিয়োগ বকেয়া রিপোর্ট'; filename = 'Project_Dues';
-    } else if (activeTab === 5) {
+    } else if (activeTab === 6) {
       cols = [
         { header: 'প্রজেক্ট নাম', key: 'projectName' },
         { header: 'বিনিয়োগ পরিমাণ', key: 'investmentAmountFormatted' },
         { header: 'ফেরত লক্ষ্য', key: 'returnAmountFormatted' },
         { header: 'মোট আদায়কৃত', key: 'totalPaidFormatted' },
-        { header: 'প্রজেক্ট মুনাফা', key: 'profitFormatted' },
+        { header: 'অর্জিত মুনাফা', key: 'currentProfitFormatted' },
+        { header: 'ভবিষ্যৎ মুনাফা', key: 'futureProfitFormatted' },
+        { header: 'মোট মুনাফা', key: 'profitFormatted' },
         { header: 'অবস্থা', key: 'statusFormatted' },
       ];
       dataToExport = reportData.map(row => ({
@@ -472,11 +474,13 @@ export default function Reports() {
         investmentAmountFormatted: formatBDT(row.investmentAmount),
         returnAmountFormatted: formatBDT(row.returnAmount),
         totalPaidFormatted: formatBDT(row.totalPaid),
+        currentProfitFormatted: formatBDT(row.currentProfit || 0),
+        futureProfitFormatted: formatBDT(row.futureProfit || 0),
         profitFormatted: formatBDT(row.profit),
         statusFormatted: row.status === 'completed' ? 'সম্পন্ন' : (row.status === 'due' ? 'বকেয়া' : 'চলতি'),
       }));
       title = 'মুনাফা রিপোর্ট'; filename = 'Profit_Report';
-    } else if (activeTab === 6) {
+    } else if (activeTab === 7) {
       cols = [
         { header: 'শিরোনাম', key: 'title' },
         { header: 'ক্যাটাগরি', key: 'categoryLabel' },
@@ -500,17 +504,17 @@ export default function Reports() {
   // ─── Tabs config ──────────────────────────────────────────────────────────
   const tabs = [
     { id: 0, label: 'সার্বিক রিপোর্ট', icon: <LayoutDashboard size={13} /> },
-    { id: 1, label: 'সঞ্চয় জমা', icon: <PiggyBank size={13} /> },
-    { id: 2, label: 'সদস্য বকেয়া', icon: <AlertTriangle size={13} /> },
-    { id: 3, label: 'কিস্তি আদায়', icon: <HandCoins size={13} /> },
-    { id: 4, label: 'বিনিয়োগ বকেয়া', icon: <AlertTriangle size={13} /> },
-    { id: 5, label: 'মুনাফা', icon: <TrendingUp size={13} /> },
-    { id: 6, label: 'খরচ', icon: <Receipt size={13} /> },
-    { id: 7, label: 'সদস্য রিপোর্ট', icon: <Users size={13} /> },
+    { id: 1, label: 'সদস্য রিপোর্ট', icon: <Users size={13} /> },
+    { id: 2, label: 'সঞ্চয় জমা', icon: <PiggyBank size={13} /> },
+    { id: 3, label: 'সদস্য বকেয়া', icon: <AlertTriangle size={13} /> },
+    { id: 4, label: 'কিস্তি আদায়', icon: <HandCoins size={13} /> },
+    { id: 5, label: 'বিনিয়োগ বকেয়া', icon: <AlertTriangle size={13} /> },
+    { id: 6, label: 'মুনাফা', icon: <TrendingUp size={13} /> },
+    { id: 7, label: 'খরচ', icon: <Receipt size={13} /> },
   ];
 
-  // Show filters only for tabs 1, 3, 6
-  const showFilters = [1, 3, 6].includes(activeTab);
+  // Show filters only for tabs 2, 4, 7
+  const showFilters = [2, 4, 7].includes(activeTab);
 
   // ─── Helper: summary stat box ─────────────────────────────────────────────
   const StatBox = ({ label, value, color = 'var(--primary)', bg = 'var(--bg-app)' }) => (
@@ -1003,12 +1007,12 @@ export default function Reports() {
                 </table>
               )}
 
-              {/* ── Tab 5: Profit Report ── */}
-              {activeTab === 5 && (
+              {/* ── Tab 6: Profit Report ── */}
+              {activeTab === 6 && (
                 <table>
                   <thead>
                     <tr>
-                      <th>প্রজেক্ট নাম</th><th>ধরন</th><th>চালক নাম</th><th>বিনিয়োগ</th><th>ফেরত লক্ষ্য</th><th>মোট আদায়কৃত</th><th>মোট মুনাফা</th><th>অবস্থা</th><th>অ্যাকশন</th>
+                      <th>প্রজেক্ট নাম</th><th>ধরন</th><th>চালক নাম</th><th>বিনিয়োগ</th><th>ফেরত লক্ষ্য</th><th>মোট আদায়কৃত</th><th>অর্জিত মুনাফা</th><th>ভবিষ্যৎ মুনাফা</th><th>মোট মুনাফা</th><th>অবস্থা</th><th>অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1020,6 +1024,8 @@ export default function Reports() {
                         <td>{formatBDT(row.investmentAmount)}</td>
                         <td>{formatBDT(row.returnAmount)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{formatBDT(row.totalPaid)}</td>
+                        <td style={{ fontWeight: 'bold', color: '#10b981' }}>{formatBDT(row.currentProfit || 0)}</td>
+                        <td style={{ fontWeight: 'bold', color: '#6366f1' }}>{formatBDT(row.futureProfit || 0)}</td>
                         <td style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{formatBDT(row.profit)}</td>
                         <td><span className={`list-badge ${row.status === 'completed' ? 'badge-success' : row.status === 'due' ? 'badge-danger' : 'badge-warning'}`}>{row.status === 'completed' ? 'সম্পন্ন' : row.status === 'due' ? 'বকেয়া' : 'চলতি'}</span></td>
                         <td>
@@ -1036,6 +1042,8 @@ export default function Reports() {
                       <td style={{ padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.investmentAmount || 0), 0))}</td>
                       <td style={{ padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.returnAmount || 0), 0))}</td>
                       <td style={{ color: 'var(--success)', padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.totalPaid || 0), 0))}</td>
+                      <td style={{ color: '#10b981', padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.currentProfit || 0), 0))}</td>
+                      <td style={{ color: '#6366f1', padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.futureProfit || 0), 0))}</td>
                       <td style={{ color: 'var(--primary)', padding: '10px' }}>{formatBDT(reportData.reduce((s, r) => s + (r.profit || 0), 0))}</td>
                       <td colSpan={2}></td>
                     </tr>
@@ -1113,10 +1121,21 @@ export default function Reports() {
                   <StatBox label="মোট বিনিয়োগ" value={formatBDT(reportData.reduce((s, r) => s + (r.investmentAmount || 0), 0))} />
                   <StatBox label="মোট ফেরত লক্ষ্য" value={formatBDT(reportData.reduce((s, r) => s + (r.returnAmount || 0), 0))} />
                   <StatBox label="মোট আদায়কৃত" value={formatBDT(reportData.reduce((s, r) => s + (r.totalPaid || 0), 0))} color="var(--success)" />
-                  <StatBox label="মোট মুনাফা" value={formatBDT(reportData.reduce((s, r) => s + (r.profit || 0), 0))} color="var(--primary-dark)" />
+                  <StatBox label="অবশিষ্ট পাওনা" value={formatBDT(reportData.reduce((s, r) => s + (r.remainingBalance || 0), 0))} color="var(--accent)" />
+                  <StatBox label="মোট কিস্তি বকেয়া" value={formatBDT(reportData.reduce((s, r) => s + (r.totalDue || 0), 0))} color="var(--danger)" />
                 </div>
               )}
               {activeTab === 6 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                  <StatBox label="মোট বিনিয়োগ" value={formatBDT(reportData.reduce((s, r) => s + (r.investmentAmount || 0), 0))} />
+                  <StatBox label="মোট ফেরত লক্ষ্য" value={formatBDT(reportData.reduce((s, r) => s + (r.returnAmount || 0), 0))} />
+                  <StatBox label="মোট আদায়কৃত" value={formatBDT(reportData.reduce((s, r) => s + (r.totalPaid || 0), 0))} color="var(--success)" />
+                  <StatBox label="অর্জিত মুনাফা" value={formatBDT(reportData.reduce((s, r) => s + (r.currentProfit || 0), 0))} color="#10b981" />
+                  <StatBox label="ভবিষ্যৎ মুনাফা" value={formatBDT(reportData.reduce((s, r) => s + (r.futureProfit || 0), 0))} color="#6366f1" />
+                  <StatBox label="মোট মুনাফা" value={formatBDT(reportData.reduce((s, r) => s + (r.profit || 0), 0))} color="var(--primary-dark)" />
+                </div>
+              )}
+              {activeTab === 7 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>নির্বাচিত সময়ে মোট খরচ:</span>
                   <strong style={{ fontSize: '1.2rem', color: '#e11d48' }}>-{formatBDT(reportData.reduce((s, r) => s + (r.amount || 0), 0))}</strong>
@@ -1127,9 +1146,9 @@ export default function Reports() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
-            TAB 7 — সদস্য রিপোর্ট
+            TAB 1 — সদস্য রিপোর্ট
         ═══════════════════════════════════════════════════════════ */}
-        {activeTab === 7 && !loading && (
+        {activeTab === 1 && !loading && (
           <div>
             {/* Summary Hero Cards */}
             {memberSummaryData && (
