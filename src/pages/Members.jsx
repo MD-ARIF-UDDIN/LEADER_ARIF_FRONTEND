@@ -5,6 +5,7 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT, formatBanglaDate, formatBanglaMonth } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
+import Footer from '../components/Footer';
 import ReceiptModal from '../components/ReceiptModal';
 import { Plus, Search, Info, PlusCircle, History, Edit, X, Save, Calendar, Download, FileText, Receipt } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '../utils/exportUtils';
@@ -976,7 +977,7 @@ export default function Members() {
             </div>
           </div>
         )}
-
+        <Footer />
       </main>
 
       <BottomNav />

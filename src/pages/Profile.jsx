@@ -5,6 +5,7 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
+import Footer from '../components/Footer';
 import { LogOut, UserPlus, Users, Edit, Shield, Check, X, Save, Eye } from 'lucide-react';
 
 export default function Profile() {
@@ -633,6 +634,7 @@ export default function Profile() {
           </div>
         )}
 
+        <Footer />
       </main>
 
       <BottomNav />

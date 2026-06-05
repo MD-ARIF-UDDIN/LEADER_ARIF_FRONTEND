@@ -22,33 +22,28 @@ function parseBanglaFormattedNumber(val) {
 
 function isColumnSummable(col) {
   if (!col || !col.header) return false;
-  const keywords = ['বিনিয়োগ', 'বিনিয়োগ', 'আদায়', 'আদায়', 'বকেয়া', 'বকেয়া', 'সঞ্চয়', 'সঞ্চয়', 'পরিমাণ', 'জমাকৃত', 'পাওনা', 'মুনাফা', 'লক্ষ্য', 'হার', 'টাকা', '৳', 'amount', 'paid', 'due', 'deposited', 'investment', 'return', 'profit', 'expense', 'fee', 'charge'];
+  const keywords = [
+    'বিনিয়োগ', 'আদায়', 'বকেয়া', 'সঞ্চয়', 'পরিমাণ', 'জমাকৃত',
+    'পাওনা', 'মুনাফা', 'লক্ষ্য', 'টাকা', '৳',
+    'amount', 'paid', 'due', 'deposited', 'investment', 'return', 'profit', 'expense', 'fee', 'charge', 'কিস্তি'
+  ];
+  const excludeKeywords = ['আইডি', 'তারিখ', 'মোবাইল', 'মেয়াদ', 'duration', 'date', 'mobile', 'id', 'status', 'অবস্থা', 'মাসিক'];
   const headerLower = col.header.toLowerCase();
-  
-  const excludeKeywords = ['আইডি', 'তারিখ', 'মোবাইল', 'মেয়াদ', 'duration', 'date', 'mobile', 'id', 'status', 'অবস্থা'];
-  if (excludeKeywords.some(ex => headerLower.includes(ex))) {
-    return false;
-  }
-  
-  return keywords.some(kw => headerLower.includes(kw));
+  if (excludeKeywords.some(ex => headerLower.includes(ex.toLowerCase()))) return false;
+  return keywords.some(kw => headerLower.includes(kw.toLowerCase()));
 }
 
 /**
  * Export data to Excel (.xlsx)
- * @param {Array} data - Array of row objects
- * @param {Array} columns - Array of { header, key } objects
- * @param {string} filename - Output filename without extension
- * @param {string} sheetName - Sheet name
  */
 export function exportToExcel(data, columns, filename = 'export', sheetName = 'Sheet1') {
-  const headers = columns.map((c) => c.header);
-  const rows = data.map((row) =>
-    columns.map((c) => {
+  const headers = columns.map(c => c.header);
+  const rows = data.map(row =>
+    columns.map(c => {
       const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
       return val ?? '';
     })
   );
-
   const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
@@ -57,109 +52,158 @@ export function exportToExcel(data, columns, filename = 'export', sheetName = 'S
 
 /**
  * Export data to PDF using html2pdf.js
- * Renders via local HTML canvas to secure perfect Bengali UTF-8 font support,
- * and triggers an automatic, hands-free file download.
- * @param {Array} data - Array of row objects
- * @param {Array} columns - Array of { header, key } objects
- * @param {string} title - Document title shown at top
- * @param {string} filename - Output filename without extension
+ * Features:
+ *  - Page-break-inside: avoid on all rows
+ *  - Beautiful tfoot totals row
+ *  - Summary dashboard below table
+ *  - Optional memberSummary for Tab 7 member report
  */
-export function exportToPDF(data, columns, title = 'রিপোর্ট', filename = 'export') {
-  // Create dynamic container
+export function exportToPDF(data, columns, title = 'রিপোর্ট', filename = 'export', memberSummary = null) {
   const element = document.createElement('div');
-  
-  // Format current date in Bengali
+
   const currentDate = new Date().toLocaleString('bn-BD', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
   });
 
+  // Build tfoot totals
+  const tfootCells = columns.map((c, colIdx) => {
+    if (isColumnSummable(c)) {
+      const total = data.reduce((sum, row) => {
+        const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
+        return sum + parseBanglaFormattedNumber(val);
+      }, 0);
+      return `<td style="padding:8px 10px;border:1px solid #94a3b8;color:#0f766e;font-weight:800;white-space:nowrap;background:#e0fdf4;">${formatBDT(total)}</td>`;
+    } else {
+      return `<td style="padding:8px 10px;border:1px solid #cbd5e1;color:#334155;background:#f8fafc;">${colIdx === 0 ? '<strong>সর্বমোট</strong>' : ''}</td>`;
+    }
+  }).join('');
+
+  // Build summary cards
+  const summableCols = columns.filter(c => isColumnSummable(c));
+  const summaryCardsHTML = summableCols.length > 0 ? `
+    <div style="margin-top:24px;padding:16px 18px;background:#f0fdfa;border:1.5px solid #a7f3d0;border-left:5px solid #0f766e;border-radius:10px;page-break-inside:avoid;">
+      <h3 style="font-size:13px;color:#115e59;font-weight:700;margin:0 0 12px 0;padding-bottom:8px;border-bottom:1px solid #d1fae5;">
+        📊 রিপোর্ট সারসংক্ষেপ
+      </h3>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        ${summableCols.map(c => {
+          const total = data.reduce((sum, row) => {
+            const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
+            return sum + parseBanglaFormattedNumber(val);
+          }, 0);
+          return `
+            <div style="flex:1;min-width:130px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+              <span style="font-size:10px;color:#64748b;display:block;margin-bottom:3px;font-weight:600;">মোট ${c.header}</span>
+              <span style="font-size:15px;color:#0f766e;font-weight:800;">${formatBDT(total)}</span>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  // Optional member summary section (Tab 7)
+  const memberSummaryHTML = memberSummary ? `
+    <div style="margin-top:20px;padding:14px 16px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-left:5px solid #16a34a;border-radius:10px;page-break-inside:avoid;">
+      <h3 style="font-size:13px;color:#15803d;font-weight:700;margin:0 0 12px 0;padding-bottom:8px;border-bottom:1px solid #d1fae5;">
+        💰 সমিতির আর্থিক অবস্থা
+      </h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <div style="flex:1;min-width:130px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <span style="font-size:10px;color:#64748b;display:block;margin-bottom:3px;font-weight:600;">বর্তমান তহবিল ব্যালেন্স</span>
+          <span style="font-size:14px;color:#0f766e;font-weight:800;">${formatBDT(memberSummary.currentBalance)}</span>
+          <span style="font-size:9px;color:#94a3b8;display:block;margin-top:2px;">খরচ বাদে বর্তমান হিসাব</span>
+        </div>
+        <div style="flex:1;min-width:130px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <span style="font-size:10px;color:#64748b;display:block;margin-bottom:3px;font-weight:600;">ভবিষ্যৎ সম্ভাব্য ব্যালেন্স</span>
+          <span style="font-size:14px;color:#16a34a;font-weight:800;">${formatBDT(memberSummary.futureBalance)}</span>
+          <span style="font-size:9px;color:#94a3b8;display:block;margin-top:2px;">সকল প্রজেক্ট সম্পন্ন হলে</span>
+        </div>
+        <div style="flex:1;min-width:130px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <span style="font-size:10px;color:#64748b;display:block;margin-bottom:3px;font-weight:600;">মোট বকেয়া সঞ্চয়</span>
+          <span style="font-size:14px;color:#dc2626;font-weight:800;">${formatBDT(memberSummary.totalMemberDue)}</span>
+        </div>
+        <div style="flex:1;min-width:130px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <span style="font-size:10px;color:#64748b;display:block;margin-bottom:3px;font-weight:600;">প্রজেক্টের বাকি ফেরত</span>
+          <span style="font-size:14px;color:#0369a1;font-weight:800;">${formatBDT(memberSummary.totalRemainingProjectReturn)}</span>
+        </div>
+      </div>
+    </div>` : '';
+
+  const isLandscape = columns.length > 6;
+
   element.innerHTML = `
-    <div style="font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; color: #1e293b; background-color: #fff;">
-      <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #0f766e; padding-bottom: 15px;">
-        <h1 style="font-size: 20px; color: #115e59; font-weight: 700; margin: 0 0 6px 0; letter-spacing: 0.5px;">তরুণ উদ্যোক্তা সমন্বয় সমিতি</h1>
-        <p style="font-size: 13px; color: #0f766e; font-weight: 600; margin: 0; background-color: #f0fdfa; display: inline-block; padding: 3px 14px; border-radius: 12px;">${title}</p>
+    <div style="font-family:'Hind Siliguri',-apple-system,BlinkMacSystemFont,sans-serif;padding:20px 24px;color:#1e293b;background:#fff;">
+
+      <!-- Premium Designed Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;border-bottom:3px double #0f766e;padding-bottom:16px;page-break-inside:avoid;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:46px;height:46px;background:linear-gradient(135deg, #115e59, #0f766e);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:22px;box-shadow:0 3px 6px rgba(15,118,110,0.25);">
+            ত
+          </div>
+          <div>
+            <h1 style="font-size:22px;color:#115e59;font-weight:800;margin:0;letter-spacing:0.5px;">তরুণ উদ্যোক্তা সমন্বয় সমিতি</h1>
+            <p style="font-size:9px;color:#64748b;margin:2px 0 0 0;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;">Youth Entrepreneur Co-operative Association</p>
+          </div>
+        </div>
+        <div>
+          <span style="font-size:12px;color:#fff;font-weight:700;background:#0f766e;padding:6px 16px;border-radius:30px;box-shadow:0 2px 4px rgba(15,118,110,0.15);letter-spacing:0.5px;display:inline-block;white-space:nowrap;">
+            ${title}
+          </span>
+        </div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-top: 12px; margin-bottom: 6px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-        <div style="float: left;">সমিতি ব্যবস্থাপনা অ্যাপ্লিকেশন</div>
-        <div style="float: right;">রিপোর্ট তৈরির সময়: ${currentDate}</div>
-        <div style="clear: both;"></div>
+
+      <!-- Styled Metadata Information Bar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 14px;font-size:10px;color:#475569;margin-bottom:16px;page-break-inside:avoid;">
+        <span>💻 <strong>সিস্টেম:</strong> সমিতি ব্যবস্থাপনা</span>
+        <span>📅 <strong>রিপোর্ট তৈরি:</strong> ${currentDate}</span>
+        <span>📊 <strong>মোট রেকর্ড:</strong> ${toBanglaNumber(data.length)} টি</span>
       </div>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; text-align: left;">
+
+      <!-- Table -->
+      <table style="width:100%;border-collapse:collapse;font-size:${isLandscape ? '9px' : '11px'};table-layout:fixed;">
         <thead>
           <tr>
-            ${columns.map(c => `<th style="background-color: #0f766e; color: #ffffff; font-weight: 700; padding: 8px 10px; border: 1px solid #0f766e;">${c.header}</th>`).join('')}
+            ${columns.map(c => `<th style="background:#0f766e;color:#fff;font-weight:700;padding:9px 8px;border:1px solid #0f766e;text-align:left;word-wrap:break-word;">${c.header}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
           ${data.map((row, idx) => `
-            <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};page-break-inside:avoid;">
               ${columns.map(c => {
                 const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
-                return `<td style="padding: 8px 10px; border: 1px solid #e2e8f0; color: #334155; white-space: nowrap;">${val ?? ''}</td>`;
+                return `<td style="padding:7px 8px;border:1px solid #e2e8f0;color:#334155;word-wrap:break-word;vertical-align:top;">${val ?? ''}</td>`;
               }).join('')}
-            </tr>
-          `).join('')}
+            </tr>`).join('')}
         </tbody>
         <tfoot>
-          <tr style="background-color: #f1f5f9; font-weight: 700; border-top: 2px solid #0f766e; border-bottom: 2px solid #0f766e;">
-            ${columns.map((c, colIdx) => {
-              if (isColumnSummable(c)) {
-                const total = data.reduce((sum, row) => {
-                  const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
-                  return sum + parseBanglaFormattedNumber(val);
-                }, 0);
-                return `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #0f766e; white-space: nowrap;">${formatBDT(total)}</td>`;
-              } else {
-                return `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #334155; white-space: nowrap;">${colIdx === 0 ? 'সর্বমোট' : ''}</td>`;
-              }
-            }).join('')}
+          <tr style="background:#f8fafc;border-top:2.5px solid #0f766e;border-bottom:2px solid #0f766e;page-break-inside:avoid;">
+            ${tfootCells}
           </tr>
         </tfoot>
       </table>
-      ${(() => {
-        const summableCols = columns.filter(c => isColumnSummable(c));
-        if (summableCols.length === 0) return '';
-        return `
-          <div style="margin-top: 24px; padding: 16px; background-color: #f0fdfa; border: 1px solid #ccfbf1; border-left: 5px solid #0f766e; border-radius: 8px;">
-            <h3 style="font-size: 13px; color: #115e59; font-weight: 700; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">রিপোর্ট সারসংক্ষেপ (Report Summary)</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-              ${summableCols.map(c => {
-                const total = data.reduce((sum, row) => {
-                  const val = c.key.split('.').reduce((o, k) => (o ? o[k] : ''), row);
-                  return sum + parseBanglaFormattedNumber(val);
-                }, 0);
-                return `
-                  <div style="flex: 1; min-width: 140px; background-color: #ffffff; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                    <span style="font-size: 10px; color: #64748b; display: block; margin-bottom: 4px; font-weight: 600;">মোট ${c.header}</span>
-                    <span style="font-size: 14px; color: #0f766e; font-weight: 800;">${formatBDT(total)}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      })()}
-      <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-        © ${new Date().getFullYear()} তরুণ উদ্যোক্তা সমন্বয় সমিতি | সর্বস্বত্ব সংরক্ষিত।
+
+      ${summaryCardsHTML}
+      ${memberSummaryHTML}
+
+      <!-- Beautiful Styled Footer -->
+      <div style="margin-top:40px;text-align:center;font-size:10px;color:#475569;border-top:1px solid #cbd5e1;padding-top:12px;page-break-inside:avoid;line-height:1.6;">
+        <div style="font-weight:700;">© ${new Date().getFullYear()} তরুণ উদ্যোক্তা সমন্বয় সমিতি | সর্বস্বত্ব সংরক্ষিত।</div>
+        <div style="font-size:9px;color:#64748b;margin-top:2px;">
+          Developed by: <span style="font-weight:bold;color:#0f766e;">Md Arif Uddin</span> | 
+          <a href="https://wa.me/8801825334505" target="_blank" rel="noopener noreferrer" style="color:#0f766e;text-decoration:none;font-weight:700;margin-left:2px;">01825334505 (WhatsApp)</a>
+        </div>
       </div>
     </div>
   `;
 
-  // html2pdf config options
   const opt = {
-    margin:       [10, 10, 10, 10],
-    filename:     `${filename}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: columns.length > 5 ? 'landscape' : 'portrait' }
+    margin:      [8, 8, 8, 8],
+    filename:    `${filename}.pdf`,
+    image:       { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: columns.length > 6 ? 'landscape' : 'portrait' },
+    pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
   };
 
-  // Process PDF download
   html2pdf().set(opt).from(element).save();
 }

@@ -157,8 +157,21 @@ export default function Login() {
           </form>
         </div>
 
-        <div style={{ marginTop: '30px', textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>
-          © {new Date().getFullYear()} তরুণ উদ্যোক্তা সমন্বয় সমিতি
+        <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.85rem' }}>
+          <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '8px' }}>
+            © {new Date().getFullYear()} তরুণ উদ্যোক্তা সমন্বয় সমিতি
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+            Developed by: <span style={{ fontWeight: 'bold', color: 'rgba(255,255,255,0.85)' }}>Md Arif Uddin</span> | 
+            <a 
+              href="https://wa.me/8801825334505" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontWeight: '700', marginLeft: '2px' }}
+            >
+              01825334505 (WhatsApp)
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
+import Footer from '../components/Footer';
 import { Users, Landmark, AlertCircle, TrendingUp, HandCoins, LandmarkIcon, CheckCircle2, Wallet, Receipt } from 'lucide-react';
 
 export default function Home() {
@@ -159,13 +160,16 @@ export default function Home() {
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
-              <div>
-                <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট মোট মুনাফা (লাভ)</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</span>
                 <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
                   {formatBDT(stats.totalProfit)}
                 </h2>
+                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginTop: '4px', display: 'block' }}>
+                  আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong>
+                </span>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <TrendingUp size={28} color="white" />
               </div>
             </div>
@@ -243,9 +247,10 @@ export default function Home() {
                   <div className="kpi-icon-wrapper">
                     <LandmarkIcon size={18} color="var(--primary)" />
                   </div>
-                  <div className="kpi-title">প্রজেক্ট মোট মুনাফা</div>
+                  <div className="kpi-title">প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</div>
                 </div>
                 <div className="kpi-value">{formatBDT(stats.totalProfit)}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong></div>
               </div>
 
               <div className="kpi-card danger">
@@ -388,13 +393,16 @@ export default function Home() {
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                  <div>
-                    <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট মোট মুনাফা (লাভ)</span>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.82rem', fontWeight: 500, display: 'block', marginBottom: '2px' }}>প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</span>
                     <h2 style={{ fontSize: '1.7rem', color: 'white', marginTop: '2px', fontWeight: 800 }}>
                       {formatBDT(stats.totalProfit)}
                     </h2>
+                    <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginTop: '4px', display: 'block' }}>
+                      আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong>
+                    </span>
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <TrendingUp size={28} color="white" />
                   </div>
                 </div>
@@ -472,9 +480,10 @@ export default function Home() {
                       <div className="kpi-icon-wrapper">
                         <LandmarkIcon size={18} color="var(--primary)" />
                       </div>
-                      <div className="kpi-title">প্রজেক্ট মোট মুনাফা</div>
+                      <div className="kpi-title">প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</div>
                     </div>
                     <div className="kpi-value">{formatBDT(stats.totalProfit)}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong></div>
                   </div>
 
                   <div className="kpi-card danger">
@@ -517,6 +526,7 @@ export default function Home() {
             <p>আপনার কোনো সদস্য প্রোফাইল লিঙ্ক করা নেই। অনুগ্রহ করে পরিচালকের সাথে যোগাযোগ করুন।</p>
           </div>
         )}
+        <Footer />
       </main>
 
       <BottomNav />

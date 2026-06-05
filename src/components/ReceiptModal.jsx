@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Download, MessageCircle, Phone, CheckCircle } from 'lucide-react';
 
 /**
@@ -354,20 +354,33 @@ export default function ReceiptModal({ receipt, onClose }) {
               </div>
             </div>
 
-            {/* Footer note */}
+            {/* Developer Credit Footer */}
             <div style={{
-              textAlign: 'center', padding: '6px 8px',
-              background: '#f8fafc', borderRadius: '8px',
-              border: '1px dashed #cbd5e1',
+              marginTop: '10px',
+              paddingTop: '8px',
+              borderTop: '1px dashed #cbd5e1',
+              textAlign: 'center',
+              fontSize: '0.65rem',
+              color: '#64748b',
+              fontWeight: 500,
+              lineHeight: 1.4,
+              position: 'relative',
+              zIndex: 1,
             }}>
-              <p style={{ fontSize: '0.65rem', color: '#64748b', lineHeight: 1.4 }}>
-                এই রশিদটি সংরক্ষণ করুন। কোনো সমস্যায় সমিতির অফিসে যোগাযোগ করুন।
-              </p>
-              <p style={{ fontSize: '0.62rem', color: '#94a3b8', marginTop: '2px' }}>
-                © তরুণ উদ্যোক্তা সমন্বয় সমিতি • ধন্যবাদ 🙏
-              </p>
+              <div style={{ marginBottom: '2px' }}>
+                Developed by: <span style={{ color: '#0f766e', fontWeight: 700 }}>Md Arif Uddin</span>
+              </div>
+              <div>
+                📱 <a 
+                  href="https://wa.me/8801825334505" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: '#0f766e', textDecoration: 'none', fontWeight: 600 }}
+                >
+                  01825334505 (WhatsApp)
+                </a>
+              </div>
             </div>
-          </div>
 
           {/* Bottom zigzag */}
           <div style={{
@@ -375,6 +388,8 @@ export default function ReceiptModal({ receipt, onClose }) {
             background: `radial-gradient(circle at 5px 13px, #f1f5f9 6px, #fff 6px)`,
             backgroundSize: '10px 10px',
             backgroundRepeat: 'repeat-x',
+            position: 'relative',
+            zIndex: 1,
           }} />
         </div>
 

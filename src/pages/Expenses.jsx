@@ -5,6 +5,7 @@ import { apiRequest } from '../utils/api';
 import { toBanglaNumber, formatBDT, formatBanglaDate, formatBanglaMonth } from '../utils/bangla';
 import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
+import Footer from '../components/Footer';
 import { Plus, Search, Edit, X, Save, Calendar, Download, FileText, Trash2, Filter, Receipt } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '../utils/exportUtils';
 
@@ -724,6 +725,7 @@ export default function Expenses() {
             </div>
           </div>
         )}
+        <Footer />
       </main>
 
       <BottomNav />
