@@ -166,7 +166,7 @@ export default function Home() {
                   {formatBDT(stats.totalProfit)}
                 </h2>
                 <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginTop: '4px', display: 'block' }}>
-                  আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong>
+                  আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(stats.totalRealizedProfit || 0)}</strong>
                 </span>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -250,7 +250,7 @@ export default function Home() {
                   <div className="kpi-title">প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</div>
                 </div>
                 <div className="kpi-value">{formatBDT(stats.totalProfit)}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong></div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(stats.totalRealizedProfit || 0)}</strong></div>
               </div>
 
               <div className="kpi-card danger">
@@ -399,7 +399,7 @@ export default function Home() {
                       {formatBDT(stats.totalProfit)}
                     </h2>
                     <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginTop: '4px', display: 'block' }}>
-                      আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong>
+                      আদায়কৃত মোট মুনাফা: <strong style={{ color: '#bbf7d0' }}>{formatBDT(stats.totalRealizedProfit || 0)}</strong>
                     </span>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.18)', padding: '12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -483,7 +483,7 @@ export default function Home() {
                       <div className="kpi-title">প্রজেক্ট থেকে টার্গেটকৃত মোট মুনাফা</div>
                     </div>
                     <div className="kpi-value">{formatBDT(stats.totalProfit)}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(Math.max(0, stats.totalInstallmentsCollected - stats.totalInvestments))}</strong></div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>আদায়কৃত: <strong style={{ color: 'var(--success)' }}>{formatBDT(stats.totalRealizedProfit || 0)}</strong></div>
                   </div>
 
                   <div className="kpi-card danger">
