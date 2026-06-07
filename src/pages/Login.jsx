@@ -86,7 +86,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label className="form-label" htmlFor="username" style={{ fontWeight: '600', color: '#334155' }}>ইউজারনেম</label>
+              <label className="form-label" htmlFor="username" style={{ fontWeight: '600', color: 'var(--text-main)' }}>ইউজারনেম</label>
               <input
                 type="text"
                 id="username"
@@ -110,7 +110,7 @@ export default function Login() {
             </div>
 
             <div className="form-group" style={{ marginBottom: '28px' }}>
-              <label className="form-label" htmlFor="password" style={{ fontWeight: '600', color: '#334155' }}>পাসওয়ার্ড</label>
+              <label className="form-label" htmlFor="password" style={{ fontWeight: '600', color: 'var(--text-main)' }}>পাসওয়ার্ড</label>
               <input
                 type="password"
                 id="password"
