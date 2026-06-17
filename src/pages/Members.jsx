@@ -54,6 +54,16 @@ export default function Members() {
 
   const [depositsList, setDepositsList] = useState([]);
 
+  // Deposit edit & delete states
+  const [editingDeposit, setEditingDeposit] = useState(null);
+  const [editDepositForm, setEditDepositForm] = useState({ amount: '', month: '', date: '' });
+  const [showEditDepositModal, setShowEditDepositModal] = useState(false);
+  const [showEditDepositConfirmModal, setShowEditDepositConfirmModal] = useState(false);
+  const [deletingDeposit, setDeletingDeposit] = useState(null);
+  const [showDeleteDepositModal, setShowDeleteDepositModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+
   // Fetch Members List
   const fetchMembers = async () => {
     try {
@@ -270,6 +280,84 @@ export default function Members() {
       status: member.status
     });
     setShowEditModal(true);
+  };
+
+  const handleOpenEditDeposit = (dep) => {
+    setEditingDeposit(dep);
+    setEditDepositForm({
+      amount: dep.amount.toString(),
+      month: dep.month,
+      date: new Date(dep.date).toISOString().split('T')[0]
+    });
+    setShowEditDepositModal(true);
+  };
+
+  const confirmSaveDeposit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const promise = apiRequest(`/api/members/deposit/${editingDeposit._id}`, {
+      method: 'PUT',
+      body: editDepositForm
+    });
+
+    toast.promise(promise, {
+      loading: 'সঞ্চয় জমা তথ্য পরিবর্তন করা হচ্ছে...',
+      success: 'জমা সফলভাবে আপডেট হয়েছে!',
+      error: (err) => err.message || 'জমা তথ্য আপডেট করতে ব্যর্থ হয়েছে'
+    });
+
+    try {
+      await promise;
+      setShowEditDepositConfirmModal(false);
+      setShowEditDepositModal(false);
+      setEditingDeposit(null);
+      // Refresh list & history
+      fetchMembers();
+      if (selectedMember) {
+        handleViewHistory(selectedMember);
+      }
+    } catch (err) {} finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenDeleteDeposit = (dep) => {
+    setDeletingDeposit(dep);
+    setDeleteConfirmText('');
+    setShowDeleteDepositModal(true);
+  };
+
+  const handleDeleteDeposit = async () => {
+    if (deleteConfirmText.toUpperCase() !== 'OK') {
+      toast.error("নিশ্চিত করতে বক্সে 'OK' লিখুন");
+      return;
+    }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const promise = apiRequest(`/api/members/deposit/${deletingDeposit._id}`, {
+      method: 'DELETE'
+    });
+
+    toast.promise(promise, {
+      loading: 'মুছে ফেলা হচ্ছে...',
+      success: 'রেকর্ড সফলভাবে মুছে ফেলা হয়েছে!',
+      error: (err) => err.message || 'রেকর্ড মুছে ফেলা সম্ভব হয়নি'
+    });
+
+    try {
+      await promise;
+      setShowDeleteDepositModal(false);
+      setDeletingDeposit(null);
+      // Refresh list & history
+      fetchMembers();
+      if (selectedMember) {
+        handleViewHistory(selectedMember);
+      }
+    } catch (err) {} finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetMemberForm = () => {
@@ -926,7 +1014,7 @@ export default function Members() {
                         <th style={{ padding: '8px' }}>মাস</th>
                         <th style={{ padding: '8px' }}>তারিখ</th>
                         <th style={{ padding: '8px', textAlign: 'right' }}>পরিমাণ</th>
-                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ</th>
+                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ / অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -940,33 +1028,67 @@ export default function Members() {
                           <td style={{ padding: '8px', fontWeight: 'bold', textAlign: 'right', color: 'var(--success)' }}>
                             {formatBDT(dep.amount)}
                           </td>
-                          <td style={{ padding: '8px', textAlign: 'center' }}>
-                            <button
-                              onClick={() => setReceiptData({
-                                id: dep._id,
-                                type: 'deposit',
-                                memberName: selectedMember.name,
-                                memberId: selectedMember.memberId,
-                                mobile: selectedMember.mobile,
-                                address: selectedMember.address,
-                                month: formatBanglaMonth(dep.month),
-                                date: formatBanglaDate(dep.date),
-                                amount: formatBDT(dep.amount),
-                                amountRaw: dep.amount,
-                                recordedBy: dep.recordedBy?.name || '',
-                              })}
-                              style={{
-                                background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
-                                color: 'white', border: 'none', borderRadius: '7px',
-                                padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                                alignItems: 'center', gap: '3px', fontSize: '0.72rem',
-                                fontWeight: 700, fontFamily: 'inherit',
-                                boxShadow: '0 2px 6px rgba(15,118,110,0.3)',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              <Receipt size={12} /> রশিদ
-                            </button>
+                          <td style={{ padding: '8px' }}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => setReceiptData({
+                                  id: dep._id,
+                                  type: 'deposit',
+                                  memberName: selectedMember.name,
+                                  memberId: selectedMember.memberId,
+                                  mobile: selectedMember.mobile,
+                                  address: selectedMember.address,
+                                  month: formatBanglaMonth(dep.month),
+                                  date: formatBanglaDate(dep.date),
+                                  amount: formatBDT(dep.amount),
+                                  amountRaw: dep.amount,
+                                  recordedBy: dep.recordedBy?.name || '',
+                                })}
+                                style={{
+                                  background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
+                                  color: 'white', border: 'none', borderRadius: '7px',
+                                  padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                  alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                  fontWeight: 700, fontFamily: 'inherit',
+                                  boxShadow: '0 2px 6px rgba(15,118,110,0.3)',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                <Receipt size={12} /> রশিদ
+                              </button>
+                              {isAdmin && (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenEditDeposit(dep)}
+                                    style={{
+                                      backgroundColor: 'var(--primary)',
+                                      color: 'white', border: 'none', borderRadius: '7px',
+                                      padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                      alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                      fontWeight: 700, fontFamily: 'inherit',
+                                      boxShadow: '0 2px 6px rgba(59,130,246,0.3)',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    <Edit size={12} /> এডিট
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenDeleteDeposit(dep)}
+                                    style={{
+                                      backgroundColor: 'var(--danger)',
+                                      color: 'white', border: 'none', borderRadius: '7px',
+                                      padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                      alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                      fontWeight: 700, fontFamily: 'inherit',
+                                      boxShadow: '0 2px 6px rgba(239,68,68,0.3)',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    <X size={12} /> ডিলিট
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -988,6 +1110,175 @@ export default function Members() {
           receipt={receiptData}
           onClose={() => setReceiptData(null)}
         />
+      )}
+
+      {/* Edit Deposit Modal */}
+      {showEditDepositModal && editingDeposit && (
+        <div className="modal-overlay" style={{ zIndex: 1050 }} onClick={() => setShowEditDepositModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>সঞ্চয় জমার তথ্য পরিবর্তন</h3>
+              <button className="modal-close" onClick={() => setShowEditDepositModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setShowEditDepositConfirmModal(true);
+            }}>
+              <div className="form-group">
+                <label className="form-label">কোন মাসের সঞ্চয়?</label>
+                <select
+                  required
+                  className="form-control"
+                  value={editDepositForm.month}
+                  onChange={(e) => setEditDepositForm({ ...editDepositForm, month: e.target.value })}
+                >
+                  <option value="">মাস নির্বাচন করুন...</option>
+                  {getMonthDropdownOptions().map((mOption) => (
+                    <option key={mOption} value={mOption}>
+                      {formatBanglaMonth(mOption)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">জমার পরিমাণ (৳)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  className="form-control"
+                  value={editDepositForm.amount}
+                  onChange={(e) => setEditDepositForm({ ...editDepositForm, amount: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label">জমার তারিখ</label>
+                <input
+                  type="date"
+                  required
+                  className="form-control"
+                  value={editDepositForm.date}
+                  onChange={(e) => setEditDepositForm({ ...editDepositForm, date: e.target.value })}
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ gap: '8px' }}>
+                <Save size={18} />
+                <span>পরিবর্তন পর্যালোচনা করুন</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Deposit Confirmation Modal */}
+      {showEditDepositConfirmModal && editingDeposit && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowEditDepositConfirmModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>পরিবর্তন নিশ্চিত করুন</h3>
+              <button className="modal-close" onClick={() => setShowEditDepositConfirmModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
+              আপনি কি সঞ্চয় জমার তথ্য সংশোধন করতে নিশ্চিত? পূর্ববর্তী এবং নতুন তথ্যের তুলনা নিচে দেওয়া হলো:
+            </div>
+
+            <table className="table" style={{ width: '100%', marginBottom: '20px', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>ক্ষেত্র (Field)</th>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>পূর্ববর্তী তথ্য (Previous)</th>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>নতুন তথ্য (New)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>মাস (Month)</td>
+                  <td style={{ padding: '8px' }}>{formatBanglaMonth(editingDeposit.month)}</td>
+                  <td style={{ padding: '8px', color: editingDeposit.month !== editDepositForm.month ? 'var(--primary)' : 'inherit', fontWeight: editingDeposit.month !== editDepositForm.month ? 'bold' : 'normal' }}>
+                    {formatBanglaMonth(editDepositForm.month)}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>পরিমাণ (Amount)</td>
+                  <td style={{ padding: '8px' }}>{formatBDT(editingDeposit.amount)}</td>
+                  <td style={{ padding: '8px', color: Number(editingDeposit.amount) !== Number(editDepositForm.amount) ? 'var(--primary)' : 'inherit', fontWeight: Number(editingDeposit.amount) !== Number(editDepositForm.amount) ? 'bold' : 'normal' }}>
+                    {formatBDT(editDepositForm.amount)}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>তারিখ (Date)</td>
+                  <td style={{ padding: '8px' }}>{formatBanglaDate(editingDeposit.date)}</td>
+                  <td style={{ padding: '8px', color: new Date(editingDeposit.date).toISOString().split('T')[0] !== editDepositForm.date ? 'var(--primary)' : 'inherit', fontWeight: new Date(editingDeposit.date).toISOString().split('T')[0] !== editDepositForm.date ? 'bold' : 'normal' }}>
+                    {formatBanglaDate(editDepositForm.date)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowEditDepositConfirmModal(false)}>
+                বাতিল
+              </button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSaveDeposit}>
+                সংরক্ষণ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Deposit Modal */}
+      {showDeleteDepositModal && deletingDeposit && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowDeleteDepositModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ color: 'var(--danger)' }}>জমা মুছে ফেলা নিশ্চিত করুন</h3>
+              <button className="modal-close" onClick={() => setShowDeleteDepositModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px', fontSize: '0.9rem', color: '#4b5563' }}>
+              আপনি কি নিশ্চিত যে এই সঞ্চয় জমার রেকর্ডটি মুছে ফেলতে চান? <br />
+              রেকর্ডটি: <strong>{formatBanglaMonth(deletingDeposit.month)}</strong> মাসের জন্য <strong>{formatBDT(deletingDeposit.amount)}</strong> টাকা। <br /><br />
+              মুছে ফেলার বিষয়টি নিশ্চিত করতে নিচের বক্সে <strong>OK</strong> লিখুন:
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="OK লিখুন" 
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: '2px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowDeleteDepositModal(false)}>
+                বাতিল
+              </button>
+              <button 
+                className="btn btn-danger" 
+                style={{ flex: 1 }} 
+                disabled={deleteConfirmText.toUpperCase() !== 'OK'}
+                onClick={handleDeleteDeposit}
+              >
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

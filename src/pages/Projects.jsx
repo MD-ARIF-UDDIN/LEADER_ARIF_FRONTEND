@@ -61,6 +61,16 @@ export default function Projects() {
 
   const [installmentsList, setInstallmentsList] = useState([]);
 
+  // Installment edit & delete states
+  const [editingInstallment, setEditingInstallment] = useState(null);
+  const [editInstallmentForm, setEditInstallmentForm] = useState({ amount: '', month: '', date: '' });
+  const [showEditInstallmentModal, setShowEditInstallmentModal] = useState(false);
+  const [showEditInstallmentConfirmModal, setShowEditInstallmentConfirmModal] = useState(false);
+  const [deletingInstallment, setDeletingInstallment] = useState(null);
+  const [showDeleteInstallmentModal, setShowDeleteInstallmentModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+
   // Fetch Projects List
   const fetchProjects = async () => {
     try {
@@ -329,6 +339,84 @@ export default function Projects() {
       status: project.status
     });
     setShowEditModal(true);
+  };
+
+  const handleOpenEditInstallment = (inst) => {
+    setEditingInstallment(inst);
+    setEditInstallmentForm({
+      amount: inst.amount.toString(),
+      month: inst.month,
+      date: new Date(inst.date).toISOString().split('T')[0]
+    });
+    setShowEditInstallmentModal(true);
+  };
+
+  const confirmSaveInstallment = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const promise = apiRequest(`/api/projects/installment/${editingInstallment._id}`, {
+      method: 'PUT',
+      body: editInstallmentForm
+    });
+
+    toast.promise(promise, {
+      loading: 'হিসাব আপডেট করা হচ্ছে...',
+      success: 'কিস্তি সফলভাবে আপডেট হয়েছে!',
+      error: (err) => err.message || 'কিস্তি আপডেট করতে ব্যর্থ হয়েছে'
+    });
+
+    try {
+      await promise;
+      setShowEditInstallmentConfirmModal(false);
+      setShowEditInstallmentModal(false);
+      setEditingInstallment(null);
+      // Refresh list & history
+      fetchProjects();
+      if (selectedProject) {
+        handleViewHistory(selectedProject);
+      }
+    } catch (err) {} finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenDeleteInstallment = (inst) => {
+    setDeletingInstallment(inst);
+    setDeleteConfirmText('');
+    setShowDeleteInstallmentModal(true);
+  };
+
+  const handleDeleteInstallment = async () => {
+    if (deleteConfirmText.toUpperCase() !== 'OK') {
+      toast.error("নিশ্চিত করতে বক্সে 'OK' লিখুন");
+      return;
+    }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const promise = apiRequest(`/api/projects/installment/${deletingInstallment._id}`, {
+      method: 'DELETE'
+    });
+
+    toast.promise(promise, {
+      loading: 'মুছে ফেলা হচ্ছে...',
+      success: 'কিস্তি সফলভাবে মুছে ফেলা হয়েছে!',
+      error: (err) => err.message || 'কিস্তি মুছে ফেলা সম্ভব হয়নি'
+    });
+
+    try {
+      await promise;
+      setShowDeleteInstallmentModal(false);
+      setDeletingInstallment(null);
+      // Refresh list & history
+      fetchProjects();
+      if (selectedProject) {
+        handleViewHistory(selectedProject);
+      }
+    } catch (err) {} finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetProjectForm = () => {
@@ -1334,7 +1422,7 @@ export default function Projects() {
                         <th style={{ padding: '8px' }}>মাস</th>
                         <th style={{ padding: '8px' }}>তারিখ</th>
                         <th style={{ padding: '8px', textAlign: 'right' }}>পরিমাণ</th>
-                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ</th>
+                        <th style={{ padding: '8px', textAlign: 'center' }}>রশিদ / অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1348,33 +1436,67 @@ export default function Projects() {
                           <td style={{ padding: '8px', fontWeight: 'bold', textAlign: 'right', color: 'var(--success)' }}>
                             {formatBDT(inst.amount)}
                           </td>
-                          <td style={{ padding: '8px', textAlign: 'center' }}>
-                            <button
-                              onClick={() => setReceiptData({
-                                id: inst._id,
-                                type: 'installment',
-                                projectName: selectedProject.projectName,
-                                projectType: selectedProject.projectType,
-                                driverName: selectedProject.driverName,
-                                driverMobile: selectedProject.driverMobile,
-                                month: formatBanglaMonth(inst.month),
-                                date: formatBanglaDate(inst.date),
-                                amount: formatBDT(inst.amount),
-                                amountRaw: inst.amount,
-                                recordedBy: inst.recordedBy?.name || '',
-                              })}
-                              style={{
-                                background: 'linear-gradient(135deg, #d97706, #f59e0b)',
-                                color: 'white', border: 'none', borderRadius: '7px',
-                                padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                                alignItems: 'center', gap: '3px', fontSize: '0.72rem',
-                                fontWeight: 700, fontFamily: 'inherit',
-                                boxShadow: '0 2px 6px rgba(217,119,6,0.3)',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              <Receipt size={12} /> রশিদ
-                            </button>
+                          <td style={{ padding: '8px' }}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => setReceiptData({
+                                  id: inst._id,
+                                  type: 'installment',
+                                  projectName: selectedProject.projectName,
+                                  projectType: selectedProject.projectType,
+                                  driverName: selectedProject.driverName,
+                                  driverMobile: selectedProject.driverMobile,
+                                  month: formatBanglaMonth(inst.month),
+                                  date: formatBanglaDate(inst.date),
+                                  amount: formatBDT(inst.amount),
+                                  amountRaw: inst.amount,
+                                  recordedBy: inst.recordedBy?.name || '',
+                                })}
+                                style={{
+                                  background: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                                  color: 'white', border: 'none', borderRadius: '7px',
+                                  padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                  alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                  fontWeight: 700, fontFamily: 'inherit',
+                                  boxShadow: '0 2px 6px rgba(217,119,6,0.3)',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                <Receipt size={12} /> রশিদ
+                              </button>
+                              {isAdmin && (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenEditInstallment(inst)}
+                                    style={{
+                                      backgroundColor: 'var(--primary)',
+                                      color: 'white', border: 'none', borderRadius: '7px',
+                                      padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                      alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                      fontWeight: 700, fontFamily: 'inherit',
+                                      boxShadow: '0 2px 6px rgba(59,130,246,0.3)',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    <Edit size={12} /> এডিট
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenDeleteInstallment(inst)}
+                                    style={{
+                                      backgroundColor: 'var(--danger)',
+                                      color: 'white', border: 'none', borderRadius: '7px',
+                                      padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                                      alignItems: 'center', gap: '3px', fontSize: '0.72rem',
+                                      fontWeight: 700, fontFamily: 'inherit',
+                                      boxShadow: '0 2px 6px rgba(239,68,68,0.3)',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    <X size={12} /> ডিলিট
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1396,6 +1518,175 @@ export default function Projects() {
           receipt={receiptData}
           onClose={() => setReceiptData(null)}
         />
+      )}
+
+      {/* Edit Installment Modal */}
+      {showEditInstallmentModal && editingInstallment && (
+        <div className="modal-overlay" style={{ zIndex: 1050 }} onClick={() => setShowEditInstallmentModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>কিস্তি আদায়ের তথ্য পরিবর্তন</h3>
+              <button className="modal-close" onClick={() => setShowEditInstallmentModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setShowEditInstallmentConfirmModal(true);
+            }}>
+              <div className="form-group">
+                <label className="form-label">কোন মাসের কিস্তি?</label>
+                <select
+                  required
+                  className="form-control"
+                  value={editInstallmentForm.month}
+                  onChange={(e) => setEditInstallmentForm({ ...editInstallmentForm, month: e.target.value })}
+                >
+                  <option value="">মাস নির্বাচন করুন...</option>
+                  {getProjectMonthOptions(selectedProject).map((mOption) => (
+                    <option key={mOption} value={mOption}>
+                      {formatBanglaMonth(mOption)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">আদায়কৃত পরিমাণ (৳)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  className="form-control"
+                  value={editInstallmentForm.amount}
+                  onChange={(e) => setEditInstallmentForm({ ...editInstallmentForm, amount: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label">আদায়ের তারিখ</label>
+                <input
+                  type="date"
+                  required
+                  className="form-control"
+                  value={editInstallmentForm.date}
+                  onChange={(e) => setEditInstallmentForm({ ...editInstallmentForm, date: e.target.value })}
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ gap: '8px' }}>
+                <Save size={18} />
+                <span>পরিবর্তন পর্যালোচনা করুন</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Installment Confirmation Modal */}
+      {showEditInstallmentConfirmModal && editingInstallment && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowEditInstallmentConfirmModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>পরিবর্তন নিশ্চিত করুন</h3>
+              <button className="modal-close" onClick={() => setShowEditInstallmentConfirmModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
+              আপনি কি কিস্তির তথ্য সংশোধন করতে নিশ্চিত? পূর্ববর্তী এবং নতুন তথ্যের তুলনা নিচে দেওয়া হলো:
+            </div>
+
+            <table className="table" style={{ width: '100%', marginBottom: '20px', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>ক্ষেত্র (Field)</th>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>পূর্ববর্তী তথ্য (Previous)</th>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>নতুন তথ্য (New)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>মাস (Month)</td>
+                  <td style={{ padding: '8px' }}>{formatBanglaMonth(editingInstallment.month)}</td>
+                  <td style={{ padding: '8px', color: editingInstallment.month !== editInstallmentForm.month ? 'var(--primary)' : 'inherit', fontWeight: editingInstallment.month !== editInstallmentForm.month ? 'bold' : 'normal' }}>
+                    {formatBanglaMonth(editInstallmentForm.month)}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>পরিমাণ (Amount)</td>
+                  <td style={{ padding: '8px' }}>{formatBDT(editingInstallment.amount)}</td>
+                  <td style={{ padding: '8px', color: Number(editingInstallment.amount) !== Number(editInstallmentForm.amount) ? 'var(--primary)' : 'inherit', fontWeight: Number(editingInstallment.amount) !== Number(editInstallmentForm.amount) ? 'bold' : 'normal' }}>
+                    {formatBDT(editInstallmentForm.amount)}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '8px', fontWeight: 'bold' }}>তারিখ (Date)</td>
+                  <td style={{ padding: '8px' }}>{formatBanglaDate(editingInstallment.date)}</td>
+                  <td style={{ padding: '8px', color: new Date(editingInstallment.date).toISOString().split('T')[0] !== editInstallmentForm.date ? 'var(--primary)' : 'inherit', fontWeight: new Date(editingInstallment.date).toISOString().split('T')[0] !== editInstallmentForm.date ? 'bold' : 'normal' }}>
+                    {formatBanglaDate(editInstallmentForm.date)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowEditInstallmentConfirmModal(false)}>
+                বাতিল
+              </button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSaveInstallment}>
+                সংরক্ষণ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Installment Modal */}
+      {showDeleteInstallmentModal && deletingInstallment && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowDeleteInstallmentModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ color: 'var(--danger)' }}>কিস্তি মুছে ফেলা নিশ্চিত করুন</h3>
+              <button className="modal-close" onClick={() => setShowDeleteInstallmentModal(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px', fontSize: '0.9rem', color: '#4b5563' }}>
+              আপনি কি নিশ্চিত যে এই কিস্তি সংগ্রহের রেকর্ডটি মুছে ফেলতে চান? <br />
+              রেকর্ডটি: <strong>{formatBanglaMonth(deletingInstallment.month)}</strong> মাসের জন্য <strong>{formatBDT(deletingInstallment.amount)}</strong> টাকা। <br /><br />
+              মুছে ফেলার বিষয়টি নিশ্চিত করতে নিচের বক্সে <strong>OK</strong> লিখুন:
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="OK লিখুন" 
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: '2px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowDeleteInstallmentModal(false)}>
+                বাতিল
+              </button>
+              <button 
+                className="btn btn-danger" 
+                style={{ flex: 1 }} 
+                disabled={deleteConfirmText.toUpperCase() !== 'OK'}
+                onClick={handleDeleteInstallment}
+              >
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
