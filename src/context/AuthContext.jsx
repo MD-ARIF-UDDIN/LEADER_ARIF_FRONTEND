@@ -11,14 +11,27 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('somiti_token');
+      const savedUserStr = localStorage.getItem('somiti_user');
+      
+      if (savedUserStr) {
+        try {
+          setUser(JSON.parse(savedUserStr));
+        } catch (e) {}
+      }
+
       if (token) {
         try {
           const profile = await apiRequest('/api/auth/me');
           setUser(profile);
+          localStorage.setItem('somiti_user', JSON.stringify(profile));
         } catch (error) {
           console.error('Session validation failed:', error);
-          localStorage.removeItem('somiti_token');
-          localStorage.removeItem('somiti_user');
+          // Only clear token if it is explicitly an unauthenticated (401) error
+          if (error.isAuthError) {
+            localStorage.removeItem('somiti_token');
+            localStorage.removeItem('somiti_user');
+            setUser(null);
+          }
         }
       }
       setLoading(false);

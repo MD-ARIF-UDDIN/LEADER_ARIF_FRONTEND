@@ -16,50 +16,51 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        // Fetch overall dashboard statistics for both admin and member
-        const dashboardData = await apiRequest('/api/reports/dashboard');
-        setStats(dashboardData);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      // Fetch overall dashboard statistics for both admin and member
+      const dashboardData = await apiRequest('/api/reports/dashboard');
+      setStats(dashboardData);
 
-        if (user.role !== 'admin') {
-          // If member, fetch their personal member profile
-          const myMemberId = user.memberId?._id || user.memberId;
-          if (myMemberId) {
-            try {
-              // Fetch individual member details directly to get precise calculations
-              const memberDetail = await apiRequest(`/api/members/${myMemberId}`);
-              if (memberDetail && memberDetail.member) {
-                const mappedMember = {
-                  ...memberDetail.member,
-                  totalDeposited: memberDetail.calculations.totalDeposited,
-                  totalDue: memberDetail.calculations.totalDue,
-                  currentBalance: memberDetail.calculations.currentBalance,
-                  monthsElapsed: memberDetail.calculations.monthsElapsed
-                };
-                setMemberStats(mappedMember);
-              }
-            } catch (memberErr) {
-              console.error('Error fetching individual member details:', memberErr);
-              // Fallback: Fetch all members and find the logged-in user
-              const membersData = await apiRequest('/api/members');
-              const foundMember = membersData.find(m => m._id === myMemberId || m.mobile === user.mobile);
-              if (foundMember) {
-                setMemberStats(foundMember);
-              }
+      if (user?.role !== 'admin') {
+        // If member, fetch their personal member profile
+        const myMemberId = user?.memberId?._id || user?.memberId;
+        if (myMemberId) {
+          try {
+            // Fetch individual member details directly to get precise calculations
+            const memberDetail = await apiRequest(`/api/members/${myMemberId}`);
+            if (memberDetail && memberDetail.member) {
+              const mappedMember = {
+                ...memberDetail.member,
+                totalDeposited: memberDetail.calculations.totalDeposited,
+                totalDue: memberDetail.calculations.totalDue,
+                currentBalance: memberDetail.calculations.currentBalance,
+                monthsElapsed: memberDetail.calculations.monthsElapsed
+              };
+              setMemberStats(mappedMember);
+            }
+          } catch (memberErr) {
+            console.error('Error fetching individual member details:', memberErr);
+            // Fallback: Fetch all members and find the logged-in user
+            const membersData = await apiRequest('/api/members');
+            const foundMember = membersData.find(m => m._id === myMemberId || m.mobile === user?.mobile);
+            if (foundMember) {
+              setMemberStats(foundMember);
             }
           }
         }
-      } catch (err) {
-        setError('ডাটা লোড করতে সমস্যা হয়েছে');
-        console.error(err);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      setError('ডাটা লোড করতে সমস্যা হয়েছে');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDashboardData();
   }, [user]);
 
@@ -112,8 +113,29 @@ export default function Home() {
         </div>
 
         {error && (
-          <div className="card" style={{ color: 'var(--danger)', backgroundColor: 'var(--danger-light)', fontWeight: 600 }}>
-            ⚠️ {error}
+          <div className="card" style={{
+            color: 'var(--danger)',
+            backgroundColor: 'var(--danger-light)',
+            fontWeight: 600,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <span>⚠️ {error}</span>
+            <button
+              onClick={fetchDashboardData}
+              className="btn btn-outline"
+              style={{
+                fontSize: '0.85rem',
+                padding: '6px 12px',
+                borderColor: 'var(--danger)',
+                color: 'var(--danger)',
+                cursor: 'pointer'
+              }}
+            >
+              🔄 পুনরায় চেষ্টা করুন
+            </button>
           </div>
         )}
 
